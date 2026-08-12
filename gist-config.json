@@ -1,0 +1,13 @@
+{
+  "gistUrl": "https://gist.githubusercontent.com/Harison-PUCMG/5f25549f7f4e342337cfc0749f06c970/raw/aebc6ce16ef288473455ec9a3a53e08df2d20c13/gistfile1.txt",
+  "enabled": true,
+  "_security": "O token de acesso do GitHub NUNCA é armazenado aqui. É mantido apenas em memória durante a sessão.",
+  "_comments": {
+    "gistUrl": "URL raw do arquivo JSON no Gist do GitHub. Para obter: 1) Crie um Gist com seu JSON de estado, 2) Clique em 'Raw', 3) Copie a URL",
+    "enabled": "Se true, tenta carregar do Gist ao inicializar (gerado pela administração web)",
+    "token_note": "Para Gists privados, configure o token no modal de administração a cada sessão. Por segurança, o token não é persistido.",
+    "setup": "Use o botão '⚙️ Administração Gist' na aplicação para configurar. Veja GIST_SETUP.md para instruções detalhadas"
+  }
+}
+
+

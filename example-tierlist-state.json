@@ -1,0 +1,58 @@
+{
+  "staging-pool": [
+    {
+      "type": "postit",
+      "text": "Aula 01",
+      "color": "#ffe066",
+      "rotation": "2.5deg"
+    },
+    {
+      "type": "postit",
+      "text": "Exercício",
+      "color": "#a8e6cf",
+      "rotation": "-1.2deg"
+    }
+  ],
+  "tier-ensino": [
+    {
+      "type": "postit",
+      "text": "Aula Teórica",
+      "color": "#ffaaa5",
+      "rotation": "0.8deg"
+    },
+    {
+      "type": "postit",
+      "text": "Seminário",
+      "color": "#a0d2db",
+      "rotation": "-2.1deg"
+    }
+  ],
+  "tier-pesquisa": [
+    {
+      "type": "postit",
+      "text": "Projeto",
+      "color": "#ffcc80",
+      "rotation": "1.5deg"
+    },
+    {
+      "type": "postit",
+      "text": "Artigo",
+      "color": "#d5aaff",
+      "rotation": "-0.7deg"
+    }
+  ],
+  "tier-extensao": [
+    {
+      "type": "postit",
+      "text": "Comunidade",
+      "color": "#ffe066",
+      "rotation": "0.3deg"
+    },
+    {
+      "type": "postit",
+      "text": "Evento",
+      "color": "#a8e6cf",
+      "rotation": "-1.8deg"
+    }
+  ]
+}

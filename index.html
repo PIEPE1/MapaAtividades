@@ -386,6 +386,233 @@
     color: var(--text-muted); font-size: 0.7rem; opacity: 0.4;
     position: relative; z-index: 1;
   }
+
+  /* ══════════════════════════════════════
+     ADMIN MODAL
+     ══════════════════════════════════════ */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+  }
+  .modal-overlay.active { display: flex; align-items: center; justify-content: center; }
+
+  .modal-content {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(74,144,217,0.1);
+    padding: 2rem;
+    max-width: 480px;
+    width: 90%;
+    animation: slideIn 0.3s ease-out;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .modal-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: var(--text);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    width: 32px; height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .modal-close:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+  }
+
+  .modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .modal-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .modal-section h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .modal-section p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .gist-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .gist-input-group label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .gist-input-group input {
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .gist-input-group input:focus {
+    border-color: var(--pesquisa-light);
+    background: rgba(0,0,0,0.5);
+  }
+
+  .gist-status {
+    padding: 0.8rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .gist-status.loading {
+    background: rgba(74,144,217,0.15);
+    color: var(--pesquisa-light);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .gist-status.success {
+    background: rgba(168,230,207,0.15);
+    color: #a8e6cf;
+    border-color: rgba(168,230,207,0.3);
+  }
+
+  .gist-status.error {
+    background: rgba(233,69,96,0.15);
+    color: var(--ensino-light);
+    border-color: rgba(233,69,96,0.3);
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .modal-footer {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .btn-modal {
+    flex: 1;
+    padding: 0.65rem 1.2rem;
+    border: none;
+    border-radius: 9px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .btn-modal.primary {
+    background: linear-gradient(135deg, var(--pesquisa-light), var(--extensao));
+    color: #fff;
+    box-shadow: 0 3px 12px rgba(74,144,217,0.3);
+  }
+  .btn-modal.primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 20px rgba(74,144,217,0.45);
+  }
+  .btn-modal.primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-modal.secondary {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text-muted);
+  }
+  .btn-modal.secondary:hover {
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+  }
+
+  @media (max-width: 600px) {
+    .modal-content {
+      padding: 1.5rem;
+      max-width: 100%;
+    }
+    .modal-header h2 {
+      font-size: 1.2rem;
+    }
+  }
 </style>
 </head>
 <body>
@@ -393,6 +620,7 @@
 <header>
   <h1>Mapa de Atividades Acadêmicas</h1>
   <p>Prepare os itens no banco e, durante a aula, arraste-os para as categorias com a turma</p>
+  <button id="open-admin-modal-btn" class="btn-ghost" style="margin-top: 0.8rem;">⚙️ Administração Gist</button>
 </header>
 
 <div class="main-layout">
@@ -477,6 +705,56 @@
 </div>
 
 <div class="footer">Arraste itens do banco para as categorias · Itens podem voltar ao banco · Dados salvos automaticamente</div>
+
+<!-- ══════════ ADMIN MODAL ══════════ -->
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>⚙️ Administração Gist</h2>
+      <button class="modal-close" id="modal-close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <h3>Configuração do Gist</h3>
+        <p>Configure a URL e o token para sincronizar os estados de cards com um Gist do GitHub.</p>
+      </div>
+
+      <div class="gist-input-group">
+        <label for="gist-url-input">URL do Gist (Raw)</label>
+        <input type="text" id="gist-url-input" placeholder="https://gist.githubusercontent.com/username/id/raw/file.json" />
+      </div>
+
+      <div class="gist-input-group">
+        <label for="gist-token-input">Token de Acesso (GitHub Personal Access Token)</label>
+        <input type="password" id="gist-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
+        <p style="font-size: 0.7rem; color: #a8e6cf; margin-top: 0.3rem;">🔒 Token mantido apenas em memória - não é armazenado</p>
+      </div>
+
+      <div id="gist-status" class="gist-status" style="display: none;"></div>
+
+      <div class="modal-section" style="margin-top: 0.5rem;">
+        <h3>Ações</h3>
+      </div>
+
+      <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+        <button class="btn btn-primary" id="btn-validate-gist">🔍 Validar & Carregar</button>
+        <button class="btn btn-primary" id="btn-clear-gist-config" style="background: linear-gradient(135deg, var(--ensino), var(--ensino-light));">🗑️ Limpar Config</button>
+      </div>
+
+      <div class="modal-section" style="margin-top: 1rem;">
+        <h3>Estado Atual</h3>
+        <div id="gist-current-status" style="font-size: 0.8rem; color: var(--text-muted); padding: 0.6rem; background: rgba(0,0,0,0.2); border-radius: 8px;">
+          Nenhuma configuração carregada
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-modal secondary" id="modal-cancel-btn">Fechar</button>
+      <button class="btn-modal primary" id="modal-save-config-btn">💾 Salvar Configuração</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (() => {
@@ -777,7 +1055,242 @@
   }
 
   // ── Init ──
-  loadState();
+  // Try loading from gist first, then fallback to localStorage
+  (async () => {
+    const config = loadGistConfigFromStorage();
+    let loadedFromGist = false;
+
+    if (config && config.gistUrl) {
+      try {
+        // Nota: Token não é persistido, então não temos autenticação na inicialização
+        // Gists públicos funcionarão, Gists privados precisam ser configurados novamente após reload
+        const headers = {};
+
+        const response = await fetch(config.gistUrl, { headers, mode: 'cors' });
+        if (response.ok) {
+          const data = await response.json();
+          const validKeys = ALL_ZONES;
+          const hasValid = validKeys.some(k => Array.isArray(data[k]));
+
+          if (hasValid) {
+            ALL_ZONES.forEach(zid => {
+              const items = data[zid];
+              if (!Array.isArray(items)) return;
+              items.forEach(item => {
+                if (item.type === 'postit') addPostitToZone(item.text, item.color, zid, item.rotation, false);
+                else if (item.type === 'image') addImageToZone(item.src, zid, false);
+              });
+            });
+            updateCounts();
+            loadedFromGist = true;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to load from gist, falling back to localStorage:', e);
+      }
+    }
+
+    // If gist load failed, load from localStorage
+    if (!loadedFromGist) {
+      loadState();
+    }
+  })();
+
+  const GIST_CONFIG_KEY = 'tierlist-gist-config';
+  let currentGistToken = null; // Token armazenado apenas em memória, nunca persistido
+
+  function openAdminModal() {
+    const modal = document.getElementById('admin-modal');
+    modal.classList.add('active');
+    loadGistConfig();
+  }
+
+  function closeAdminModal() {
+    const modal = document.getElementById('admin-modal');
+    modal.classList.remove('active');
+  }
+
+  function showGistStatus(msg, type = 'info') {
+    const status = document.getElementById('gist-status');
+    status.textContent = msg;
+    status.className = `gist-status ${type}`;
+    if (msg) status.style.display = 'block';
+    else status.style.display = 'none';
+  }
+
+  function showGistStatusWithSpinner(msg) {
+    const status = document.getElementById('gist-status');
+    status.innerHTML = `<span class="spinner"></span> ${msg}`;
+    status.className = 'gist-status loading';
+    status.style.display = 'flex';
+  }
+
+  function updateCurrentStatus() {
+    const config = loadGistConfigFromStorage();
+    const statusDiv = document.getElementById('gist-current-status');
+    if (!config || !config.gistUrl) {
+      statusDiv.textContent = 'Nenhuma configuração carregada';
+      statusDiv.style.color = 'var(--text-muted)';
+      return;
+    }
+    const shortUrl = config.gistUrl.substring(0, 60) + '...';
+    statusDiv.innerHTML = `✓ Configurado: <code style="font-family:monospace;font-size:0.75rem;">${shortUrl}</code>`;
+    statusDiv.style.color = '#a8e6cf';
+  }
+
+  function loadGistConfigFromStorage() {
+    try {
+      const raw = localStorage.getItem(GIST_CONFIG_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      console.warn('Error loading gist config:', e);
+      return null;
+    }
+  }
+
+  function saveGistConfigToStorage(config) {
+    try {
+      localStorage.setItem(GIST_CONFIG_KEY, JSON.stringify(config));
+      showToast('✓ Configuração salva');
+    } catch (e) {
+      console.warn('Error saving gist config:', e);
+      showToast('⚠️ Erro ao salvar');
+    }
+  }
+
+  function loadGistConfig() {
+    const config = loadGistConfigFromStorage();
+    const urlInput = document.getElementById('gist-url-input');
+    const tokenInput = document.getElementById('gist-token-input');
+    
+    if (config) {
+      urlInput.value = config.gistUrl || '';
+    } else {
+      urlInput.value = '';
+    }
+    // Token nunca é carregado do storage, sempre vazio no formulário
+    tokenInput.value = '';
+    currentGistToken = null;
+    showGistStatus('', 'info');
+    updateCurrentStatus();
+  }
+
+  async function validateAndLoadGist() {
+    const gistUrl = document.getElementById('gist-url-input').value.trim();
+    const gistToken = document.getElementById('gist-token-input').value.trim();
+
+    if (!gistUrl) {
+      showGistStatus('⚠️ URL do Gist é obrigatória', 'error');
+      return;
+    }
+
+    // Validar URL
+    try {
+      new URL(gistUrl);
+    } catch (e) {
+      showGistStatus('⚠️ URL do Gist inválida', 'error');
+      return;
+    }
+
+    showGistStatusWithSpinner('Validando e carregando Gist...');
+
+    try {
+      // Armazenar token apenas em memória durante a sessão
+      currentGistToken = gistToken || null;
+      
+      const headers = {};
+      if (currentGistToken) {
+        headers['Authorization'] = `token ${currentGistToken}`;
+      }
+
+      const response = await fetch(gistUrl, { headers, mode: 'cors' });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Validate JSON structure
+      const validKeys = ALL_ZONES;
+      const hasValid = validKeys.some(k => Array.isArray(data[k]));
+
+      if (!hasValid) {
+        showGistStatus('⚠️ Formato JSON inválido', 'error');
+        return;
+      }
+
+      // Success
+      showGistStatus('✓ Gist carregado com sucesso', 'success');
+
+      // Save config (apenas URL, nunca o token)
+      const config = { gistUrl };
+      saveGistConfigToStorage(config);
+
+      // Ask to import
+      if (confirm('Deseja importar o estado do Gist agora?')) {
+        ALL_ZONES.forEach(id => { document.getElementById(id).innerHTML = ''; });
+        ALL_ZONES.forEach(zid => {
+          const items = data[zid];
+          if (!Array.isArray(items)) return;
+          items.forEach(item => {
+            if (item.type === 'postit') addPostitToZone(item.text, item.color, zid, item.rotation, false);
+            else if (item.type === 'image') addImageToZone(item.src, zid, false);
+          });
+        });
+        updateCounts();
+        saveState();
+        showToast('📥 Importado do Gist com sucesso');
+      }
+
+      updateCurrentStatus();
+    } catch (error) {
+      console.error('Gist validation error:', error);
+      showGistStatus(`⚠️ Erro: ${error.message}`, 'error');
+    }
+  }
+
+  function clearGistConfig() {
+    if (!confirm('Limpar configuração do Gist?')) return;
+    localStorage.removeItem(GIST_CONFIG_KEY);
+    document.getElementById('gist-url-input').value = '';
+    document.getElementById('gist-token-input').value = '';
+    currentGistToken = null; // Limpar token em memória também
+    showGistStatus('✓ Configuração limpa', 'success');
+    updateCurrentStatus();
+    showToast('🗑️ Configuração removida');
+  }
+
+  // Event listeners
+  document.getElementById('open-admin-modal-btn').addEventListener('click', openAdminModal);
+  document.getElementById('modal-close-btn').addEventListener('click', closeAdminModal);
+  document.getElementById('modal-cancel-btn').addEventListener('click', closeAdminModal);
+
+  document.getElementById('modal-save-config-btn').addEventListener('click', () => {
+    const gistUrl = document.getElementById('gist-url-input').value.trim();
+    const gistToken = document.getElementById('gist-token-input').value.trim();
+
+    if (gistUrl) {
+      // Armazenar token apenas em memória, nunca no localStorage
+      currentGistToken = gistToken || null;
+      
+      // Salvar apenas URL na storage
+      const config = { gistUrl };
+      saveGistConfigToStorage(config);
+      updateCurrentStatus();
+      closeAdminModal();
+    } else {
+      showGistStatus('⚠️ URL do Gist é obrigatória', 'error');
+    }
+  });
+
+  document.getElementById('btn-validate-gist').addEventListener('click', validateAndLoadGist);
+  document.getElementById('btn-clear-gist-config').addEventListener('click', clearGistConfig);
+
+  // Close modal on overlay click
+  document.getElementById('admin-modal').addEventListener('click', e => {
+    if (e.target.id === 'admin-modal') closeAdminModal();
+  });
 })();
 </script>
 </body>
