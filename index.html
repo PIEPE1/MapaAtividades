@@ -727,7 +727,7 @@
       <div class="gist-input-group">
         <label for="gist-token-input">Token de Acesso (GitHub Personal Access Token)</label>
         <input type="password" id="gist-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
-        <p style="font-size: 0.7rem; color: #a8e6cf; margin-top: 0.3rem;">🔒 Token mantido apenas em memória - não é armazenado</p>
+        <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem;">Token salvo localmente para conveniência (use Gist secreto se sensível)</p>
       </div>
 
       <div id="gist-status" class="gist-status" style="display: none;"></div>
@@ -1062,11 +1062,19 @@
 
     if (config && config.gistUrl) {
       try {
-        // Nota: Token não é persistido, então não temos autenticação na inicialização
-        // Gists públicos funcionarão, Gists privados precisam ser configurados novamente após reload
-        const headers = {};
+        // Usar token salvo se disponível
+        const headers = {
+          'Accept': 'application/json'
+        };
+        if (config.gistToken) {
+          headers['Authorization'] = `token ${config.gistToken}`;
+        }
 
-        const response = await fetch(config.gistUrl, { headers, mode: 'cors' });
+        const response = await fetch(config.gistUrl, { 
+          headers,
+          credentials: 'omit'
+        });
+        
         if (response.ok) {
           const data = await response.json();
           const validKeys = ALL_ZONES;
@@ -1083,6 +1091,7 @@
             });
             updateCounts();
             loadedFromGist = true;
+            console.log('✓ Estado carregado do Gist com sucesso');
           }
         }
       } catch (e) {
@@ -1097,7 +1106,7 @@
   })();
 
   const GIST_CONFIG_KEY = 'tierlist-gist-config';
-  let currentGistToken = null; // Token armazenado apenas em memória, nunca persistido
+  let currentGistToken = null; // Token em uso durante sessão
 
   function openAdminModal() {
     const modal = document.getElementById('admin-modal');
@@ -1165,12 +1174,13 @@
     
     if (config) {
       urlInput.value = config.gistUrl || '';
+      tokenInput.value = config.gistToken || '';
+      if (config.gistToken) currentGistToken = config.gistToken;
     } else {
       urlInput.value = '';
+      tokenInput.value = '';
+      currentGistToken = null;
     }
-    // Token nunca é carregado do storage, sempre vazio no formulário
-    tokenInput.value = '';
-    currentGistToken = null;
     showGistStatus('', 'info');
     updateCurrentStatus();
   }
@@ -1192,21 +1202,52 @@
       return;
     }
 
+    // Validar token se fornecido
+    if (gistToken && !gistToken.startsWith('ghp_')) {
+      showGistStatus('⚠️ Token deve começar com "ghp_"', 'error');
+      return;
+    }
+
     showGistStatusWithSpinner('Validando e carregando Gist...');
 
     try {
-      // Armazenar token apenas em memória durante a sessão
+      // Armazenar token em memória e localStorage
       currentGistToken = gistToken || null;
       
-      const headers = {};
+      const headers = {
+        'Accept': 'application/json'
+      };
       if (currentGistToken) {
         headers['Authorization'] = `token ${currentGistToken}`;
       }
 
-      const response = await fetch(gistUrl, { headers, mode: 'cors' });
+      // Tentar fetch com modo simples primeiro
+      let response;
+      try {
+        response = await fetch(gistUrl, { 
+          headers, 
+          mode: 'cors',
+          credentials: 'omit'
+        });
+      } catch (corsError) {
+        // Se falhar com CORS, tentar sem modo CORS
+        console.warn('CORS error, tentando sem CORS:', corsError);
+        response = await fetch(gistUrl, { 
+          headers,
+          credentials: 'omit'
+        });
+      }
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        let errorMsg = `HTTP ${response.status}`;
+        if (response.status === 401) {
+          errorMsg = 'Token inválido ou expirado (HTTP 401)';
+        } else if (response.status === 404) {
+          errorMsg = 'Gist não encontrado (HTTP 404)';
+        } else if (response.status === 403) {
+          errorMsg = 'Acesso negado (HTTP 403)';
+        }
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
@@ -1216,15 +1257,15 @@
       const hasValid = validKeys.some(k => Array.isArray(data[k]));
 
       if (!hasValid) {
-        showGistStatus('⚠️ Formato JSON inválido', 'error');
+        showGistStatus('⚠️ Formato JSON inválido - esperado: { "staging-pool": [], "tier-ensino": [], ... }', 'error');
         return;
       }
 
-      // Success
+      // Success - save config with token
       showGistStatus('✓ Gist carregado com sucesso', 'success');
 
-      // Save config (apenas URL, nunca o token)
-      const config = { gistUrl };
+      // Save config (URL e token)
+      const config = { gistUrl, gistToken };
       saveGistConfigToStorage(config);
 
       // Ask to import
@@ -1246,7 +1287,13 @@
       updateCurrentStatus();
     } catch (error) {
       console.error('Gist validation error:', error);
-      showGistStatus(`⚠️ Erro: ${error.message}`, 'error');
+      let msg = `⚠️ Erro: ${error.message}`;
+      
+      if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+        msg = '⚠️ Erro de rede - Verifique: 1) URL do Gist, 2) Conexão internet, 3) Se Gist é público ou token está correto';
+      }
+      
+      showGistStatus(msg, 'error');
     }
   }
 
@@ -1271,11 +1318,11 @@
     const gistToken = document.getElementById('gist-token-input').value.trim();
 
     if (gistUrl) {
-      // Armazenar token apenas em memória, nunca no localStorage
+      // Armazenar token em memória e localStorage
       currentGistToken = gistToken || null;
       
-      // Salvar apenas URL na storage
-      const config = { gistUrl };
+      // Salvar URL e token na storage
+      const config = { gistUrl, gistToken };
       saveGistConfigToStorage(config);
       updateCurrentStatus();
       closeAdminModal();
