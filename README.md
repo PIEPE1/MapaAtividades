@@ -22,12 +22,15 @@ O sistema agora suporta sincronização com **Gists do GitHub**! Isso permite:
 - ✓ Sincronizar automaticamente ao carregar a página
 - ✓ Trabalhar colaborativamente com outros usuários
 - ✓ Versionar diferentes configurações de aula
+- ✓ Suporte a Gists públicos e secretos
+- ✓ Múltiplas formas de acesso (API do GitHub ou URL raw)
 
 ### Como Começar
 
 1. Clique em **"⚙️ Administração Gist"** no topo da página
-2. Configure a URL de um Gist e seu token de acesso
-3. Clique em **"🔍 Validar & Carregar"**
+2. Configure a URL de um Gist e seu token (se necessário)
+3. Ative **"Usar API do GitHub"** se tiver problemas de CORS
+4. Clique em **"🔍 Validar & Carregar"**
 
 Para instruções detalhadas, veja [GIST_SETUP.md](GIST_SETUP.md).
 

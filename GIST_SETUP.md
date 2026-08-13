@@ -125,23 +125,54 @@ Basta alterar a URL do Gist na configuração para trocar entre eles.
 - **image**: Imagem
   - `src`: URL da imagem ou Data URL (base64)
 
-## Troubleshooting
+## Solução para Erro de CORS
 
-### "Erro de rede - Verifique: 1) URL do Gist..."
-- Certifique-se de usar a **URL RAW** do Gist (contém `/raw/`)
-- Verifique sua **conexão com internet**
-- Tente copiar e colar a URL do navegador (deve abrir o JSON)
-- Se usar Gist secreto, **o token é obrigatório**
+Se receber mensagem: **"Erro de CORS"** ou **"NetworkError when attempting to fetch resource"**
+
+### Causa
+O navegador bloqueia requisições cross-origin (CORS) para URLs do Gist quando acessadas do navegador.
+
+### Solução Recomendada: Usar API do GitHub
+
+1. Abra **"⚙️ Administração Gist"**
+2. Ative a opção: **☑ "Usar API do GitHub (melhor suporte CORS)"**
+3. Clique **"🔍 Validar & Carregar"**
+
+A API oficial do GitHub tem suporte melhor a CORS e geralmente funciona.
+
+### Se Ainda Não Funcionar
+
+**Passo 1: Verificar a URL**
+- Copie a URL diretamente do Gist:
+  1. Abra seu Gist no navegador
+  2. Clique no botão **"Raw"** (superior direito)
+  3. Copie a URL completa
+  4. A URL deve ser algo como: `https://gist.githubusercontent.com/seu-usuario/abc123/raw/filename.json`
+
+**Passo 2: Adicionar Token (se Gist é secreto)**
+- Gists secretos precisam de token mesmo com API do GitHub
+- Gere um token em [github.com/settings/tokens](https://github.com/settings/tokens)
+- Selecione escopo `gist`
+- Cole o token no campo "Token de Acesso"
+
+**Passo 3: Tentar com Gist Público**
+- Crie um Gist público apenas para testes
+- Se funcionar, seu firewall/proxy pode estar bloqueando Gists secretos
+- Use Gist público ou configure proxy corporativo
+
+## Troubleshooting Geral
 
 ### "Token inválido ou expirado (HTTP 401)"
 - Seu token expirou ou foi revogado
 - Regenere um novo token em [github.com/settings/tokens](https://github.com/settings/tokens)
 - Verifique se tem escopo `gist` ativado
+- Quando regenera token, lembre-se de copiar imediatamente (não aparece novamente)
 
 ### "Acesso negado (HTTP 403)"
 - Você não tem permissão para acessar este Gist
 - Se for Gist secreto, precisa do token correto
 - Verifique se o token pertence à conta que criou o Gist
+- Gists são associados à conta que os criou
 
 ### "Gist não encontrado (HTTP 404)"
 - O Gist foi deletado
@@ -158,8 +189,15 @@ Basta alterar a URL do Gist na configuração para trocar entre eles.
   "tier-extensao": []
 }
 ```
-- Cada zona pode conter post-its ou imagens
+- Cada zona contém um array de itens
+- Cada item é um objeto com `type`, `text`, `color`, etc
 - Use o botão **"📤 Exportar"** para ver o formato correto
+
+### Não carrega ao recarregar a página
+- Verifique se você clicou **"💾 Salvar Configuração"**
+- Abra DevTools (F12) → Console para ver erros
+- Se falhar ao carregar Gist, volta para localStorage local (esperado)
+- Gists privados precisam de token; públicos carregam sem
 
 ## Segurança
 

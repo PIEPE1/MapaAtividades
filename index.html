@@ -730,6 +730,14 @@
         <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem;">Token salvo localmente para conveniência (use Gist secreto se sensível)</p>
       </div>
 
+      <div class="gist-input-group">
+        <label style="display: flex; align-items: center; gap: 0.4rem;">
+          <input type="checkbox" id="gist-use-api" />
+          <span>Usar API do GitHub (melhor suporte CORS)</span>
+        </label>
+        <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem;">Se ativar, usará a API oficial do GitHub que tem melhor suporte a CORS</p>
+      </div>
+
       <div id="gist-status" class="gist-status" style="display: none;"></div>
 
       <div class="modal-section" style="margin-top: 0.5rem;">
@@ -742,10 +750,14 @@
       </div>
 
       <div class="modal-section" style="margin-top: 1rem;">
-        <h3>Estado Atual</h3>
-        <div id="gist-current-status" style="font-size: 0.8rem; color: var(--text-muted); padding: 0.6rem; background: rgba(0,0,0,0.2); border-radius: 8px;">
-          Nenhuma configuração carregada
-        </div>
+        <h3>⚠️ Erro de CORS?</h3>
+        <p>Se receber "Erro de CORS" ou "NetworkError":</p>
+        <ol style="font-size: 0.8rem; color: var(--text-muted); padding-left: 1.2rem; margin-top: 0.4rem;">
+          <li>Ative a opção acima: <strong>"Usar API do GitHub"</strong></li>
+          <li>Verifique se a URL é correta (copie do botão "Raw" do Gist)</li>
+          <li>Para Gist secreto, adicione o token</li>
+          <li>Tente recarregar a página</li>
+        </ol>
       </div>
     </div>
 
@@ -1070,13 +1082,51 @@
           headers['Authorization'] = `token ${config.gistToken}`;
         }
 
-        const response = await fetch(config.gistUrl, { 
-          headers,
-          credentials: 'omit'
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
+        let data = null;
+        let success = false;
+
+        // Tentar com API se preferência está ativada
+        if (config.useApi) {
+          try {
+            const gistId = extractGistId(config.gistUrl);
+            if (gistId) {
+              const headers2 = {
+                'Accept': 'application/vnd.github.v3+json'
+              };
+              if (config.gistToken) {
+                headers2['Authorization'] = `token ${config.gistToken}`;
+              }
+
+              const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers: headers2 });
+              
+              if (response.ok) {
+                const gistData = await response.json();
+                const files = Object.values(gistData.files);
+                if (files.length > 0) {
+                  data = JSON.parse(files[0].content);
+                  success = true;
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('API fallback failed:', e);
+          }
+        }
+
+        // Fallback para URL raw
+        if (!success) {
+          const response = await fetch(config.gistUrl, { 
+            headers,
+            credentials: 'omit'
+          });
+          
+          if (response.ok) {
+            data = await response.json();
+            success = true;
+          }
+        }
+
+        if (success && data) {
           const validKeys = ALL_ZONES;
           const hasValid = validKeys.some(k => Array.isArray(data[k]));
 
@@ -1171,14 +1221,17 @@
     const config = loadGistConfigFromStorage();
     const urlInput = document.getElementById('gist-url-input');
     const tokenInput = document.getElementById('gist-token-input');
+    const useApiCheckbox = document.getElementById('gist-use-api');
     
     if (config) {
       urlInput.value = config.gistUrl || '';
       tokenInput.value = config.gistToken || '';
       if (config.gistToken) currentGistToken = config.gistToken;
+      useApiCheckbox.checked = config.useApi || false;
     } else {
       urlInput.value = '';
       tokenInput.value = '';
+      useApiCheckbox.checked = false;
       currentGistToken = null;
     }
     showGistStatus('', 'info');
@@ -1188,6 +1241,7 @@
   async function validateAndLoadGist() {
     const gistUrl = document.getElementById('gist-url-input').value.trim();
     const gistToken = document.getElementById('gist-token-input').value.trim();
+    const useApi = document.getElementById('gist-use-api').checked;
 
     if (!gistUrl) {
       showGistStatus('⚠️ URL do Gist é obrigatória', 'error');
@@ -1214,43 +1268,107 @@
       // Armazenar token em memória e localStorage
       currentGistToken = gistToken || null;
       
-      const headers = {
-        'Accept': 'application/json'
-      };
-      if (currentGistToken) {
-        headers['Authorization'] = `token ${currentGistToken}`;
+      let data = null;
+      let success = false;
+      let lastError = null;
+
+      // Tentar diferentes métodos
+      const methods = [];
+
+      // Método 1: API do GitHub (se checkbox estiver marcado)
+      if (useApi) {
+        methods.push({
+          name: 'GitHub API',
+          fetchFn: async () => {
+            const gistId = extractGistId(gistUrl);
+            if (!gistId) throw new Error('Não foi possível extrair ID do Gist');
+            
+            const headers = {
+              'Accept': 'application/vnd.github.v3+json'
+            };
+            if (currentGistToken) {
+              headers['Authorization'] = `token ${currentGistToken}`;
+            }
+
+            const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
+            
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+
+            const gistData = await response.json();
+            // Extrair o JSON do primeiro arquivo
+            const files = Object.values(gistData.files);
+            if (files.length === 0) throw new Error('Gist sem arquivos');
+            
+            const firstFile = files[0];
+            return JSON.parse(firstFile.content);
+          }
+        });
       }
 
-      // Tentar fetch com modo simples primeiro
-      let response;
-      try {
-        response = await fetch(gistUrl, { 
-          headers, 
-          mode: 'cors',
-          credentials: 'omit'
-        });
-      } catch (corsError) {
-        // Se falhar com CORS, tentar sem modo CORS
-        console.warn('CORS error, tentando sem CORS:', corsError);
-        response = await fetch(gistUrl, { 
-          headers,
-          credentials: 'omit'
-        });
-      }
+      // Método 2: URL raw direto
+      methods.push({
+        name: 'URL Raw (direto)',
+        fetchFn: async () => {
+          const headers = {
+            'Accept': 'application/json'
+          };
+          if (currentGistToken) {
+            headers['Authorization'] = `token ${currentGistToken}`;
+          }
 
-      if (!response.ok) {
-        let errorMsg = `HTTP ${response.status}`;
-        if (response.status === 401) {
-          errorMsg = 'Token inválido ou expirado (HTTP 401)';
-        } else if (response.status === 404) {
-          errorMsg = 'Gist não encontrado (HTTP 404)';
-        } else if (response.status === 403) {
-          errorMsg = 'Acesso negado (HTTP 403)';
+          const response = await fetch(gistUrl, { 
+            headers,
+            credentials: 'omit'
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          return await response.json();
         }
-        throw new Error(errorMsg);
+      });
+
+      // Método 3: jsDelivr CDN (proxy CORS público)
+      methods.push({
+        name: 'jsDelivr CDN',
+        fetchFn: async () => {
+          const gistId = extractGistId(gistUrl);
+          if (!gistId) throw new Error('Não foi possível extrair ID do Gist');
+          
+          // Tentar via jsDelivr
+          const cdnUrl = `https://cdn.jsdelivr.net/gh/gist/${gistId}@main/MapaPIEPE.json`;
+          const response = await fetch(cdnUrl, { 
+            headers: { 'Accept': 'application/json' }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          return await response.json();
+        }
+      });
+
+      // Tentar cada método
+      for (const method of methods) {
+        try {
+          console.log(`Tentando ${method.name}...`);
+          data = await method.fetchFn();
+          success = true;
+          console.log(`✓ Sucesso com ${method.name}`);
+          break;
+        } catch (err) {
+          lastError = `${method.name}: ${err.message}`;
+          console.warn(lastError);
+        }
       }
 
-      const data = await response.json();
+      if (!success || !data) {
+        throw new Error('Todos os métodos falharam: ' + lastError);
+      }
 
       // Validate JSON structure
       const validKeys = ALL_ZONES;
@@ -1261,11 +1379,11 @@
         return;
       }
 
-      // Success - save config with token
+      // Success - save config with token and API preference
       showGistStatus('✓ Gist carregado com sucesso', 'success');
 
-      // Save config (URL e token)
-      const config = { gistUrl, gistToken };
+      // Save config (URL, token e preferência de API)
+      const config = { gistUrl, gistToken, useApi };
       saveGistConfigToStorage(config);
 
       // Ask to import
@@ -1289,12 +1407,24 @@
       console.error('Gist validation error:', error);
       let msg = `⚠️ Erro: ${error.message}`;
       
-      if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
-        msg = '⚠️ Erro de rede - Verifique: 1) URL do Gist, 2) Conexão internet, 3) Se Gist é público ou token está correto';
+      if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
+        msg = '⚠️ Erro de CORS - Tente: 1) Ativar "Usar API do GitHub", 2) Verificar URL, 3) Usar Gist público';
       }
       
       showGistStatus(msg, 'error');
     }
+  }
+
+  function extractGistId(url) {
+    // Extrair ID do Gist de URL raw: https://gist.githubusercontent.com/user/ID/raw/...
+    const match = url.match(/gist\.githubusercontent\.com\/[^/]+\/([a-f0-9]+)\//);
+    if (match) return match[1];
+    
+    // Tentar formato: https://gist.github.com/user/ID
+    const match2 = url.match(/gist\.github\.com\/[^/]+\/([a-f0-9]+)/);
+    if (match2) return match2[1];
+    
+    return null;
   }
 
   function clearGistConfig() {
@@ -1316,13 +1446,14 @@
   document.getElementById('modal-save-config-btn').addEventListener('click', () => {
     const gistUrl = document.getElementById('gist-url-input').value.trim();
     const gistToken = document.getElementById('gist-token-input').value.trim();
+    const useApi = document.getElementById('gist-use-api').checked;
 
     if (gistUrl) {
       // Armazenar token em memória e localStorage
       currentGistToken = gistToken || null;
       
-      // Salvar URL e token na storage
-      const config = { gistUrl, gistToken };
+      // Salvar URL, token e preferência de API na storage
+      const config = { gistUrl, gistToken, useApi };
       saveGistConfigToStorage(config);
       updateCurrentStatus();
       closeAdminModal();
