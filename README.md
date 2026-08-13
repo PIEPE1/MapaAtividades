@@ -5,54 +5,62 @@ O objetivo é realizar explicações do que pode ser feito em cada uma destas ba
 
 Mapa gerado com auxílio do Large Language Model (LLM) Anthropic Claude.
 
+## Como funciona
+
+A página é estática (GitHub Pages) e tem **dois papéis**:
+
+| Ação | Usuário comum (leitura) | Administrador (token) |
+| --- | --- | --- |
+| Ver os itens vindos do Gist | ✅ | ✅ |
+| Arrastar itens entre categorias | ✅ (salvo só no navegador dele) | ✅ |
+| Criar post-its e imagens | ❌ | ✅ (modal de Administração) |
+| Remover itens / Limpar tudo / Importar | ❌ | ✅ |
+| Publicar o estado no Gist | ❌ | ✅ |
+
+- A **URL do Gist** vem do arquivo [`gist-config.json`](gist-config.json), publicado junto com a página. Nenhum visitante precisa configurar nada: ao abrir o site, o estado é lido desse Gist.
+- O **administrador** entra com um Personal Access Token do GitHub (escopo `gist`) no modal **"⚙️ Administração"**. Só então a criação de cards e o botão de publicar aparecem.
+- O token **nunca** é gravado no repositório — fica apenas no navegador do administrador (`sessionStorage`, ou `localStorage` se marcar "Lembrar token neste navegador").
+
 ## Funcionalidades
 
-- 🎒 **Banco de Itens**: Crie post-its coloridos e adicione imagens
-- 📂 **Três Categorias**: Organize itens em Ensino, Pesquisa e Extensão
-- 🖱️ **Drag & Drop**: Arraste itens entre categorias facilmente
-- 💾 **Salvamento Automático**: Dados são salvos no localStorage do navegador
-- 📤 **Exportar/Importar**: Exporte seu estado como JSON e importe posteriormente
-- ☁️ **Sincronização com Gist**: Sincronize estados com um Gist do GitHub
-
-## Sincronização com Gist
-
-O sistema agora suporta sincronização com **Gists do GitHub**! Isso permite:
-
-- ✓ Salvar e compartilhar estados de forma centralizada
-- ✓ Sincronizar automaticamente ao carregar a página
-- ✓ Trabalhar colaborativamente com outros usuários
-- ✓ Versionar diferentes configurações de aula
-- ✓ Suporte a Gists públicos e secretos
-- ✓ Múltiplas formas de acesso (API do GitHub ou URL raw)
-
-### Como Começar
-
-1. Clique em **"⚙️ Administração Gist"** no topo da página
-2. Configure a URL de um Gist e seu token (se necessário)
-3. Ative **"Usar API do GitHub"** se tiver problemas de CORS
-4. Clique em **"🔍 Validar & Carregar"**
-
-Para instruções detalhadas, veja [GIST_SETUP.md](GIST_SETUP.md).
+- 🎒 **Banco de Itens**: post-its coloridos e imagens, criados pelo administrador
+- 📂 **Três Categorias**: Ensino, Pesquisa e Extensão
+- 🖱️ **Drag & Drop**: qualquer visitante arrasta os itens durante a aula
+- 💾 **Salvamento local**: a organização feita em aula fica no localStorage do navegador
+- 🔄 **Recarregar**: volta ao estado publicado no Gist a qualquer momento
+- ☁️ **Publicação no Gist**: o administrador grava o estado atual para toda a turma
+- 📤 **Exportar/Importar**: backup em JSON (importar é restrito ao administrador)
 
 ## Como Usar
 
-### Criando Itens
+### Usuário comum (aula)
 
-1. No "Banco de Itens", digite o texto do post-it
-2. Escolha uma cor
-3. Clique em **"+ Post-it"**
-4. Ou faça upload de uma imagem com **"+ Imagem"**
+1. Abra a página — os itens já vêm do Gist publicado
+2. Arraste os itens do banco para Ensino, Pesquisa ou Extensão
+3. A organização é salva no navegador; **🔄 Recarregar** volta ao estado do Gist
 
-### Organizando
+### Administrador
 
-1. Arraste itens do banco para as categorias
-2. Itens podem ser movidos entre categorias
-3. Arraste de volta para o banco para descartar
+1. Clique em **"⚙️ Administração"**
+2. Cole o Personal Access Token (escopo `gist`) e clique em **"🔓 Entrar como administrador"**
+3. Use a seção **"Criar itens"** do modal para adicionar post-its e imagens
+4. Organize com drag & drop na página
+5. Clique em **"☁️ Publicar estado no Gist"** — é o que todos passarão a ver
 
-### Salvando
+Para instruções detalhadas (criar o Gist, gerar o token, formato do JSON), veja [GIST_SETUP.md](GIST_SETUP.md).
 
-- Os dados são salvos **automaticamente** no localStorage
-- Use **"📤 Exportar"** para fazer backup como arquivo JSON
-- Use **"📥 Importar"** para restaurar um estado anterior
-- Use **"⚙️ Administração Gist"** para sincronizar com GitHub
+## Configuração (`gist-config.json`)
 
+```json
+{
+  "gistUrl": "https://gist.githubusercontent.com/usuario/ID/raw/arquivo.json",
+  "gistId": "ID",
+  "gistFile": "arquivo.json",
+  "enabled": true
+}
+```
+
+- `gistUrl`: URL raw **sem o SHA da revisão** — assim a página sempre lê a versão mais recente (se você colar a URL com SHA, a página remove o SHA automaticamente).
+- `gistId` e `gistFile`: opcionais; se ausentes, são extraídos de `gistUrl`. São usados para publicar via API do GitHub.
+- `enabled`: `false` desliga a leitura do Gist (usa só o armazenamento local).
+- ⚠️ **Nunca** coloque o token neste arquivo — ele é público.

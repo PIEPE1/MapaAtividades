@@ -1,33 +1,23 @@
-# Guia Rápido de Troubleshooting - Gist & CORS
+# Guia Rápido de Troubleshooting — Gist & CORS
 
-## Erro: "Erro de CORS" ou "NetworkError when attempting to fetch resource"
+> A URL do Gist vem de `gist-config.json` (não há mais campo de URL na interface).
+> Leitura: qualquer visitante, pela URL raw. Escrita: só o administrador, com token.
 
-### ✅ Solução Rápida
-1. Abra **"⚙️ Administração Gist"**
-2. Ative: **☑ "Usar API do GitHub (melhor suporte CORS)"**
-3. Clique **"🔍 Validar & Carregar"**
+## A página abre mas não mostra os itens
 
-Se ainda não funcionar, continue abaixo.
+### Checklist
 
----
+- [ ] **`gist-config.json` está publicado junto com a página?**
+  - Abra `https://seu-usuario.github.io/seu-repo/gist-config.json` — deve mostrar o JSON
+  - No modal **"⚙️ Administração"**, a seção **"Origem dos dados"** mostra o que foi lido e o erro, se houver
 
-## Checklist de Diagnóstico
-
-- [ ] **URL está correta?**
-  - Deve ser a URL **RAW** do Gist (contém `/raw/`)
-  - Teste: Cole a URL no navegador, deve mostrar JSON bruto
+- [ ] **A `gistUrl` está correta?**
+  - Deve ser a URL **RAW** (contém `/raw/`) e **sem o SHA da revisão**
+  - Teste: cole a URL no navegador, deve mostrar o JSON bruto
   - Não use a URL da página do Gist, use o botão "Raw"
 
-- [ ] **Gist é público ou privado?**
-  - **Público**: Funciona sem token
-  - **Privado/Secret**: Precisa de token válido
+- [ ] **O JSON está no formato correto?**
 
-- [ ] **Token está válido?**
-  - Deve começar com `ghp_`
-  - Pode ter expirado → Regenere em [github.com/settings/tokens](https://github.com/settings/tokens)
-  - Verifique se tem escopo `gist` ativado
-
-- [ ] **JSON está no formato correto?**
   ```json
   {
     "staging-pool": [],
@@ -36,90 +26,79 @@ Se ainda não funcionar, continue abaixo.
     "tier-extensao": []
   }
   ```
+
   - Cada zona é um array
-  - Está no Gist como arquivo `.json`?
+  - O arquivo no Gist é `.json` e o nome bate com `gistFile`
 
----
+- [ ] **`enabled` está `true`** em `gist-config.json`?
 
-## Erros Específicos e Soluções
+## A página não publica (modo admin)
+
+- [ ] **Token válido?** Regenere em [github.com/settings/tokens](https://github.com/settings/tokens) com escopo `gist`
+- [ ] **Token é da conta dona do Gist?** A página recusa tokens de outra conta no login
+- [ ] **`gistId` correto?** Confira em `gist-config.json`
+
+## Erros específicos
 
 | Erro | Solução |
 |------|---------|
-| **HTTP 401 - Token inválido** | Regenere token em GitHub settings |
-| **HTTP 403 - Acesso negado** | Verifique se token pertence à conta que criou o Gist |
-| **HTTP 404 - Não encontrado** | Gist foi deletado ou URL está errada |
-| **CORS error** | Ative "Usar API do GitHub" ou tente Gist público |
-| **JSON inválido** | Exporte seu estado atual para ver formato correto |
+| **HTTP 401 — Token inválido** | Regenere o token nas configurações do GitHub |
+| **HTTP 403 — Sem permissão** | Token sem escopo `gist`, ou rate limit da API atingido |
+| **HTTP 404 — Não encontrado** | Gist deletado, `gistId` errado ou token de outra conta |
+| **"O token pertence a X, mas o Gist é de Y"** | Use o token da conta que criou o Gist |
+| **CORS / NetworkError na URL raw** | A página tenta a API do GitHub como fallback; verifique firewall/proxy |
+| **JSON inválido** | Use **"📤 Exportar"** para ver o formato correto |
 
----
+## Testes no Console (F12)
 
-## Testes Progressivos
+### Teste 1 — leitura pública (sem token)
 
-### Teste 1: Verificar Conectividade
-```
-1. Abra DevTools (F12)
-2. Vá para aba "Console"
-3. Cole: fetch('https://gist.githubusercontent.com/seu-usuario/seu-id/raw/seu-arquivo.json').then(r => r.json()).then(d => console.log(d))
-4. Se funcionar, verá o JSON no console
-5. Se falhar, verá o erro específico
+```js
+fetch('https://gist.githubusercontent.com/USUARIO/ID/raw/ARQUIVO.json')
+  .then(r => r.json()).then(console.log)
 ```
 
-### Teste 2: Com Token (se Gist é secreto)
+### Teste 2 — leitura via API com token
+
+```js
+fetch('https://api.github.com/gists/ID', {
+  headers: { Authorization: 'Bearer SEU_TOKEN' }
+}).then(r => r.json()).then(console.log)
 ```
-fetch('https://api.github.com/gists/seu-id', {
-  headers: {
-    'Authorization': 'token seu-token-aqui'
-  }
-}).then(r => r.json()).then(d => console.log(d))
+
+### Teste 3 — a quem pertence o token
+
+```js
+fetch('https://api.github.com/user', {
+  headers: { Authorization: 'Bearer SEU_TOKEN' }
+}).then(r => r.json()).then(u => console.log(u.login))
 ```
 
-### Teste 3: Gist Público
-1. Crie um Gist PÚBLICO para testes
-2. Se funcionar com público mas não com secreto, é problema de acesso
-3. Se não funcionar nem com público, pode ser firewall
+## Cenários comuns
 
----
+### Rede corporativa / da instituição
 
-## Cenários Comuns
+- O firewall pode bloquear `gist.githubusercontent.com` ou `api.github.com`
+- Teste com dados móveis; se funcionar, é bloqueio de rede
 
-### Cenário 1: Está em Rede Corporativa
-- Firewall pode bloquear GitHub
-- Teste: Use dados móvel
-- Solução: Contate seu admin de rede
+### Publiquei, mas a turma vê a versão antiga
 
-### Cenário 2: Gist Secreto Não Funciona
-- Token pode estar expirado
-- Token pode ter escopo errado (sem `gist`)
-- Solução: Regenere token com escopo `gist`
+- Confirme que `gistUrl` **não** contém o SHA da revisão (senão a URL fica congelada naquela versão)
+- Peça para clicarem em **"🔄 Recarregar"**
 
-### Cenário 3: Funciona Localmente Mas Não no Servidor
-- Domínio diferente pode ter CORS restrito
-- Solução: Use "Usar API do GitHub" que tem CORS melhor
+### Alunos perdem a organização feita em aula
 
----
+- A organização local é mantida enquanto o Gist não mudar. Se você **publicar** durante a aula, o novo estado substitui o dos alunos no próximo carregamento — publique antes ou depois da atividade.
 
-## Console Developer (Debugging)
+## Quando tudo falha: importação manual (admin)
 
-Para ver erros detalhados:
-1. Clique com botão direito → **Inspecionar**
-2. Abra aba **Console** (F12)
-3. Tente validar o Gist
-4. Procure por mensagens de erro em vermelho
-5. Copie o erro completo para reportar
-
----
-
-## Quando Tudo Falha: Importar Manualmente
-
-Se nada funcionar, você pode:
-1. Exportar seu JSON: **"📤 Exportar"**
-2. Baixar o arquivo JSON do Gist manualmente
-3. Importar aqui: **"📥 Importar"** (selecione o arquivo)
-
----
+1. Baixe o JSON do Gist manualmente
+2. Entre como administrador
+3. Use **"📥 Importar"** e selecione o arquivo
+4. Publique com **"☁️ Publicar estado no Gist"**
 
 ## Dúvidas?
 
-- **Gist Setup**: Veja [GIST_SETUP.md](GIST_SETUP.md)
-- **Estrutura JSON**: Exporte um estado atual para usar como template
+- **Setup do Gist**: veja [GIST_SETUP.md](GIST_SETUP.md)
+- **Estrutura JSON**: exporte um estado atual para usar como template
 - **Token GitHub**: [github.com/settings/tokens](https://github.com/settings/tokens)

@@ -1,15 +1,14 @@
 {
-  "gistUrl": "https://gist.githubusercontent.com/Harison-PUCMG/66f9b5c3da471942e21c4de11b8fcf93/raw/bf6bf5fa0209ccc0d5d0ec38e3a760199091cf52/MapaPIEPE.json",
-  "gistToken": "",
+  "gistUrl": "https://gist.githubusercontent.com/Harison-PUCMG/66f9b5c3da471942e21c4de11b8fcf93/raw/MapaPIEPE.json",
+  "gistId": "66f9b5c3da471942e21c4de11b8fcf93",
+  "gistFile": "MapaPIEPE.json",
   "enabled": true,
-  "_security": "URL e token são armazenados localmente no localStorage. Para máxima segurança, use Gist secreto.",
+  "_security": "NUNCA coloque o token do GitHub neste arquivo — ele é público no GitHub Pages. O token fica só no navegador do administrador (modal de Administração).",
   "_comments": {
-    "gistUrl": "URL raw do arquivo JSON no Gist do GitHub. Exemplo: https://gist.githubusercontent.com/username/id/raw/file.json",
-    "gistToken": "Token de acesso pessoal do GitHub (ghp_xxxxx). Deixe vazio para Gists públicos. Use 'Secret gist' para privacidade.",
-    "enabled": "Se true, tenta carregar do Gist ao inicializar",
-    "setup": "Use o botão '⚙️ Administração Gist' na aplicação para configurar. Veja GIST_SETUP.md para instruções."
+    "gistUrl": "URL raw do arquivo JSON no Gist, SEM o SHA da revisão (assim sempre traz a versão mais recente). Ex.: https://gist.githubusercontent.com/usuario/ID/raw/arquivo.json",
+    "gistId": "ID do Gist. Opcional — se ausente, é extraído de gistUrl. Usado para publicar via API do GitHub.",
+    "gistFile": "Nome do arquivo dentro do Gist que será lido e gravado. Opcional — se ausente, é extraído de gistUrl.",
+    "enabled": "Se true, a página carrega o estado do Gist ao abrir. Se false, usa apenas o armazenamento local.",
+    "fluxo": "Visitantes leem este Gist em modo somente leitura. O administrador entra com um Personal Access Token (escopo 'gist') no modal de Administração para criar itens e publicar o estado."
   }
 }
-
-
-

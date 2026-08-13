@@ -222,7 +222,7 @@
   .staging-body.drag-over { background: rgba(74,144,217,0.05); }
 
   .staging-body:empty::after {
-    content: '📋 Crie post-its e imagens acima — eles aparecerão aqui para uso em aula';
+    content: '📋 Nenhum item no banco — o administrador publica os itens pelo Gist';
     display: flex; align-items: center; justify-content: center;
     width: 100%; min-height: 70px;
     color: rgba(255,255,255,0.13);
@@ -406,8 +406,10 @@
     border-radius: 18px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(74,144,217,0.1);
     padding: 2rem;
-    max-width: 480px;
-    width: 90%;
+    max-width: 620px;
+    width: 92%;
+    max-height: 88vh;
+    overflow-y: auto;
     animation: slideIn 0.3s ease-out;
   }
 
@@ -613,14 +615,68 @@
       font-size: 1.2rem;
     }
   }
+
+  /* ══════════════════════════════════════
+     ADMIN MODE VISIBILITY
+     ══════════════════════════════════════ */
+  body:not(.is-admin) .admin-only { display: none !important; }
+
+  .admin-pill {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    margin-left: 0.4rem;
+    padding: 0.18rem 0.55rem;
+    border-radius: 20px;
+    font-size: 0.66rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    background: rgba(255,255,255,0.08);
+    color: var(--text-muted);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  body.is-admin .admin-pill {
+    background: rgba(168,230,207,0.14);
+    color: #a8e6cf;
+    border-color: rgba(168,230,207,0.3);
+  }
+
+  .info-box {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 0.7rem 0.85rem;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    word-break: break-all;
+  }
+  .info-box code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.72rem;
+    color: var(--text);
+  }
+  .info-box .info-row { display: flex; gap: 0.4rem; }
+  .info-box .info-row + .info-row { margin-top: 0.3rem; }
+  .info-box .info-key { color: rgba(255,255,255,0.35); flex-shrink: 0; }
+
+  /* Barra de criação dentro do modal */
+  .creation-bar.in-modal {
+    padding: 0;
+    background: transparent;
+    border-bottom: none;
+  }
+  .creation-bar.in-modal .field { flex: 1 1 150px; }
+
+  .modal-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .modal-actions .btn { flex: 1 1 auto; }
 </style>
 </head>
 <body>
 
 <header>
   <h1>Mapa de Atividades Acadêmicas</h1>
-  <p>Prepare os itens no banco e, durante a aula, arraste-os para as categorias com a turma</p>
-  <button id="open-admin-modal-btn" class="btn-ghost" style="margin-top: 0.8rem;">⚙️ Administração Gist</button>
+  <p>Arraste os itens do banco para as categorias e monte o mapa com a turma</p>
+  <button id="open-admin-modal-btn" class="btn-ghost" style="margin-top: 0.8rem;">
+    ⚙️ Administração <span class="admin-pill" id="admin-pill">leitura</span>
+  </button>
 </header>
 
 <div class="main-layout">
@@ -630,45 +686,13 @@
     <div class="staging-top">
       <h2>🎒 Banco de Itens <span class="badge" id="staging-count">0 itens</span></h2>
       <div class="staging-btns">
-        <button class="btn-ghost" id="collapse-btn" title="Recolher formulário">▲ Recolher</button>
+        <button class="btn-ghost" id="reload-gist-btn" title="Recarregar o estado publicado no Gist">🔄 Recarregar</button>
         <button class="btn-ghost" id="export-btn" title="Exportar estado">📤 Exportar</button>
-        <label class="btn-ghost import-label" id="import-label" title="Importar estado">
+        <label class="btn-ghost import-label admin-only" id="import-label" title="Importar estado">
           📥 Importar
           <input type="file" id="import-input" accept=".json" style="display:none">
         </label>
-        <button class="btn-ghost btn-danger" id="clear-all-btn">🗑 Limpar tudo</button>
-      </div>
-    </div>
-
-    <div id="creation-area">
-      <div class="creation-bar">
-        <div class="field" style="flex:1; min-width:155px;">
-          <label for="postit-input">📝 Texto do Post-it</label>
-          <input type="text" id="postit-input" maxlength="25" placeholder="Ex: Aula de Cálculo">
-          <div class="char-count"><span id="char-current">0</span>/25</div>
-        </div>
-        <div class="field">
-          <label>Cor</label>
-          <div class="color-picker-row" id="color-picker">
-            <div class="color-swatch selected" data-color="#ffe066" style="background:#ffe066;" title="Amarelo"></div>
-            <div class="color-swatch" data-color="#a8e6cf" style="background:#a8e6cf;" title="Verde"></div>
-            <div class="color-swatch" data-color="#ffaaa5" style="background:#ffaaa5;" title="Rosa"></div>
-            <div class="color-swatch" data-color="#a0d2db" style="background:#a0d2db;" title="Azul"></div>
-            <div class="color-swatch" data-color="#ffcc80" style="background:#ffcc80;" title="Laranja"></div>
-            <div class="color-swatch" data-color="#d5aaff" style="background:#d5aaff;" title="Lilás"></div>
-          </div>
-        </div>
-        <button class="btn btn-primary" id="add-postit-btn">+ Post-it</button>
-        <div class="divider"></div>
-        <div class="field">
-          <label>🖼️ Imagem</label>
-          <label class="file-label">
-            📎 Arquivo
-            <input type="file" id="img-input" accept="image/*">
-          </label>
-          <span class="file-name" id="file-name-display">Nenhum arquivo</span>
-        </div>
-        <button class="btn btn-primary" id="add-img-btn">+ Imagem</button>
+        <button class="btn-ghost btn-danger admin-only" id="clear-all-btn">🗑 Limpar tudo</button>
       </div>
     </div>
 
@@ -704,66 +728,106 @@
   </div>
 </div>
 
-<div class="footer">Arraste itens do banco para as categorias · Itens podem voltar ao banco · Dados salvos automaticamente</div>
+<div class="footer">Itens carregados do Gist publicado · Arraste do banco para as categorias · Sua organização fica salva neste navegador</div>
 
 <!-- ══════════ ADMIN MODAL ══════════ -->
 <div class="modal-overlay" id="admin-modal">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>⚙️ Administração Gist</h2>
+      <h2>⚙️ Administração</h2>
       <button class="modal-close" id="modal-close-btn">✕</button>
     </div>
     <div class="modal-body">
+
+      <!-- ── Origem dos dados (somente leitura) ── -->
       <div class="modal-section">
-        <h3>Configuração do Gist</h3>
-        <p>Configure a URL e o token para sincronizar os estados de cards com um Gist do GitHub.</p>
+        <h3>Origem dos dados</h3>
+        <p>A URL do Gist vem do arquivo <code>gist-config.json</code> publicado junto com a página. Todos os visitantes leem o estado desse Gist.</p>
+        <div class="info-box" id="gist-source-info">Carregando <code>gist-config.json</code>…</div>
       </div>
 
-      <div class="gist-input-group">
-        <label for="gist-url-input">URL do Gist (Raw)</label>
-        <input type="text" id="gist-url-input" placeholder="https://gist.githubusercontent.com/username/id/raw/file.json" />
+      <!-- ── Acesso do administrador ── -->
+      <div class="modal-section">
+        <h3>Acesso do administrador</h3>
+        <p>Informe um Personal Access Token do GitHub com escopo <code>gist</code> para editar e publicar o estado. Sem token, a página funciona apenas em modo leitura.</p>
       </div>
 
-      <div class="gist-input-group">
-        <label for="gist-token-input">Token de Acesso (GitHub Personal Access Token)</label>
-        <input type="password" id="gist-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
-        <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem;">Token salvo localmente para conveniência (use Gist secreto se sensível)</p>
-      </div>
-
-      <div class="gist-input-group">
-        <label style="display: flex; align-items: center; gap: 0.4rem;">
-          <input type="checkbox" id="gist-use-api" />
-          <span>Usar API do GitHub (melhor suporte CORS)</span>
+      <div class="gist-input-group" id="admin-login-group">
+        <label for="gist-token-input">Token de Acesso (GitHub)</label>
+        <input type="password" id="gist-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+        <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+          <input type="checkbox" id="remember-token" />
+          <span>Lembrar token neste navegador</span>
         </label>
-        <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem;">Se ativar, usará a API oficial do GitHub que tem melhor suporte a CORS</p>
+        <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem;">Sem "lembrar", o token vive apenas nesta aba (sessionStorage). Nunca coloque o token no <code>gist-config.json</code> — ele é público.</p>
       </div>
 
       <div id="gist-status" class="gist-status" style="display: none;"></div>
 
-      <div class="modal-section" style="margin-top: 0.5rem;">
-        <h3>Ações</h3>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="btn-admin-login">🔓 Entrar como administrador</button>
+        <button class="btn btn-primary admin-only" id="btn-admin-logout" style="background: linear-gradient(135deg, var(--ensino), var(--ensino-light));">🔒 Sair</button>
       </div>
 
-      <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
-        <button class="btn btn-primary" id="btn-validate-gist">🔍 Validar & Carregar</button>
-        <button class="btn btn-primary" id="btn-clear-gist-config" style="background: linear-gradient(135deg, var(--ensino), var(--ensino-light));">🗑️ Limpar Config</button>
+      <!-- ── Criação de itens (somente admin) ── -->
+      <div class="modal-section admin-only" style="margin-top: 0.5rem;">
+        <h3>Criar itens</h3>
+        <p>Os itens criados vão para o Banco de Itens. Publique no Gist para que a turma os receba.</p>
+      </div>
+
+      <div class="creation-bar in-modal admin-only" id="creation-area">
+        <div class="field" style="flex:1; min-width:155px;">
+          <label for="postit-input">📝 Texto do Post-it</label>
+          <input type="text" id="postit-input" maxlength="25" placeholder="Ex: Aula de Cálculo">
+          <div class="char-count"><span id="char-current">0</span>/25</div>
+        </div>
+        <div class="field">
+          <label>Cor</label>
+          <div class="color-picker-row" id="color-picker">
+            <div class="color-swatch selected" data-color="#ffe066" style="background:#ffe066;" title="Amarelo"></div>
+            <div class="color-swatch" data-color="#a8e6cf" style="background:#a8e6cf;" title="Verde"></div>
+            <div class="color-swatch" data-color="#ffaaa5" style="background:#ffaaa5;" title="Rosa"></div>
+            <div class="color-swatch" data-color="#a0d2db" style="background:#a0d2db;" title="Azul"></div>
+            <div class="color-swatch" data-color="#ffcc80" style="background:#ffcc80;" title="Laranja"></div>
+            <div class="color-swatch" data-color="#d5aaff" style="background:#d5aaff;" title="Lilás"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="add-postit-btn">+ Post-it</button>
+        <div class="divider"></div>
+        <div class="field">
+          <label>🖼️ Imagem</label>
+          <label class="file-label">
+            📎 Arquivo
+            <input type="file" id="img-input" accept="image/*">
+          </label>
+          <span class="file-name" id="file-name-display">Nenhum arquivo</span>
+        </div>
+        <button class="btn btn-primary" id="add-img-btn">+ Imagem</button>
+      </div>
+
+      <!-- ── Publicação (somente admin) ── -->
+      <div class="modal-section admin-only">
+        <h3>Publicar no Gist</h3>
+        <p>Grava o estado atual (banco + categorias) no Gist. É o que todos os visitantes passarão a ver.</p>
+      </div>
+      <div class="modal-actions admin-only">
+        <button class="btn btn-primary" id="btn-publish-gist">☁️ Publicar estado no Gist</button>
       </div>
 
       <div class="modal-section" style="margin-top: 1rem;">
-        <h3>⚠️ Erro de CORS?</h3>
-        <p>Se receber "Erro de CORS" ou "NetworkError":</p>
+        <h3>⚠️ Problemas ao carregar?</h3>
         <ol style="font-size: 0.8rem; color: var(--text-muted); padding-left: 1.2rem; margin-top: 0.4rem;">
-          <li>Ative a opção acima: <strong>"Usar API do GitHub"</strong></li>
-          <li>Verifique se a URL é correta (copie do botão "Raw" do Gist)</li>
-          <li>Para Gist secreto, adicione o token</li>
-          <li>Tente recarregar a página</li>
+          <li>Confira a URL raw em <code>gist-config.json</code> (copie do botão "Raw" do Gist)</li>
+          <li>Gist secreto: a URL raw funciona sem token; Gist deletado retorna 404</li>
+          <li>Para publicar, o token precisa do escopo <code>gist</code> e pertencer ao dono do Gist</li>
+          <li>Use "🔄 Recarregar" para buscar a versão mais recente do Gist</li>
         </ol>
       </div>
     </div>
 
     <div class="modal-footer">
       <button class="btn-modal secondary" id="modal-cancel-btn">Fechar</button>
-      <button class="btn-modal primary" id="modal-save-config-btn">💾 Salvar Configuração</button>
+      <button class="btn-modal primary admin-only" id="modal-reload-btn">🔄 Recarregar do Gist</button>
     </div>
   </div>
 </div>
@@ -771,37 +835,21 @@
 <script>
 (() => {
   const STORAGE_KEY = 'tierlist-academica-v2';
+  const TOKEN_KEY = 'tierlist-admin-token';
+  const CONFIG_URL = 'gist-config.json';
   const ALL_ZONES = ['staging-pool', 'tier-ensino', 'tier-pesquisa', 'tier-extensao'];
 
-  // ── Collapse ──
-  const creationArea = document.getElementById('creation-area');
-  const collapseBtn = document.getElementById('collapse-btn');
-  let collapsed = false;
-  collapseBtn.addEventListener('click', () => {
-    collapsed = !collapsed;
-    creationArea.style.display = collapsed ? 'none' : '';
-    collapseBtn.textContent = collapsed ? '▼ Expandir' : '▲ Recolher';
-  });
-
-  // ── Color Picker ──
+  // Configuração pública (vem de gist-config.json, servido junto com a página)
+  let remoteConfig = null;
+  // Assinatura do conteúdo do Gist que originou o estado atual
+  let gistStamp = null;
+  let isAdmin = false;
+  let adminToken = null;
   let selectedColor = '#ffe066';
-  document.getElementById('color-picker').addEventListener('click', e => {
-    const sw = e.target.closest('.color-swatch');
-    if (!sw) return;
-    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-    sw.classList.add('selected');
-    selectedColor = sw.dataset.color;
-  });
 
-  // ── Char Counter ──
-  const postitInput = document.getElementById('postit-input');
-  const charCurrent = document.getElementById('char-current');
-  postitInput.addEventListener('input', () => {
-    const len = postitInput.value.length;
-    charCurrent.textContent = len;
-    charCurrent.parentElement.classList.toggle('warn', len >= 22);
-  });
+  const $ = id => document.getElementById(id);
 
+  // ═══ Utilidades ═══
   function randomRotation() { return (Math.random() - 0.5) * 6; }
 
   function escapeHtml(str) {
@@ -810,60 +858,16 @@
     return d.innerHTML;
   }
 
-  function updateCounts() {
-    const sc = document.getElementById('staging-pool').children.length;
-    document.getElementById('staging-count').textContent = sc + (sc === 1 ? ' item' : ' itens');
-    ['ensino', 'pesquisa', 'extensao'].forEach(id => {
-      const n = document.getElementById('tier-' + id).children.length;
-      document.getElementById('count-' + id).textContent = n + (n === 1 ? ' item' : ' itens');
-    });
-  }
-
-  // ═══ localStorage ═══
-  function saveState() {
-    const data = {};
-    ALL_ZONES.forEach(zid => {
-      const zone = document.getElementById(zid);
-      const items = [];
-      zone.querySelectorAll('.postit, .tier-image').forEach(el => {
-        if (el.classList.contains('postit')) {
-          items.push({ type: 'postit', text: el.querySelector('.postit-text').textContent, color: el.style.background, rotation: el.style.getPropertyValue('--rotation') });
-        } else if (el.classList.contains('tier-image')) {
-          items.push({ type: 'image', src: el.querySelector('img').src });
-        }
-      });
-      data[zid] = items;
-    });
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); showToast('✓ Salvo'); }
-    catch (e) { console.warn('Save error:', e); }
-  }
-
-  function loadState() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const data = JSON.parse(raw);
-      ALL_ZONES.forEach(zid => {
-        const items = data[zid];
-        if (!Array.isArray(items)) return;
-        items.forEach(item => {
-          if (item.type === 'postit') addPostitToZone(item.text, item.color, zid, item.rotation, false);
-          else if (item.type === 'image') addImageToZone(item.src, zid, false);
-        });
-      });
-      updateCounts();
-    } catch (e) { console.warn('Load error:', e); }
-  }
-
-  function clearAll() {
-    if (!confirm('Limpar todos os itens do banco e das categorias?')) return;
-    localStorage.removeItem(STORAGE_KEY);
-    ALL_ZONES.forEach(id => { document.getElementById(id).innerHTML = ''; });
-    updateCounts();
+  // Hash estável do conteúdo (djb2) para comparar revisões do Gist
+  function hashContent(obj) {
+    const str = JSON.stringify(obj);
+    let h = 5381;
+    for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+    return (h >>> 0).toString(36) + '-' + str.length.toString(36);
   }
 
   function showToast(msg) {
-    let t = document.getElementById('save-toast');
+    let t = $('save-toast');
     if (!t) {
       t = document.createElement('div');
       t.id = 'save-toast';
@@ -873,72 +877,32 @@
     t.textContent = msg;
     t.style.opacity = '1';
     clearTimeout(t._t);
-    t._t = setTimeout(() => { t.style.opacity = '0'; }, 1400);
+    t._t = setTimeout(() => { t.style.opacity = '0'; }, 1800);
   }
 
-  // ═══ Create Items ═══
-  function addPostitToZone(text, color, zoneId, rotation, shouldSave = true) {
-    if (!text.trim()) return;
-    const zone = document.getElementById(zoneId);
-    const note = document.createElement('div');
-    note.className = 'postit';
-    note.draggable = true;
-    note.style.background = color;
-    note.style.setProperty('--rotation', rotation || (randomRotation() + 'deg'));
-    note.innerHTML = `<span class="postit-text">${escapeHtml(text)}</span><button class="delete-btn" title="Remover">✕</button>`;
-    note.querySelector('.delete-btn').addEventListener('click', e => { e.stopPropagation(); note.remove(); updateCounts(); saveState(); });
-    addDragEvents(note);
-    zone.appendChild(note);
-    if (shouldSave) { updateCounts(); saveState(); }
+  function updateCounts() {
+    const sc = $('staging-pool').children.length;
+    $('staging-count').textContent = sc + (sc === 1 ? ' item' : ' itens');
+    ['ensino', 'pesquisa', 'extensao'].forEach(id => {
+      const n = $('tier-' + id).children.length;
+      $('count-' + id).textContent = n + (n === 1 ? ' item' : ' itens');
+    });
   }
 
-  function addImageToZone(src, zoneId, shouldSave = true) {
-    const zone = document.getElementById(zoneId);
-    const item = document.createElement('div');
-    item.className = 'tier-image';
-    item.draggable = true;
-    item.innerHTML = `<img src="${src}" alt="Item"><button class="delete-btn" title="Remover">✕</button>`;
-    item.querySelector('.delete-btn').addEventListener('click', e => { e.stopPropagation(); item.remove(); updateCounts(); saveState(); });
-    addDragEvents(item);
-    zone.appendChild(item);
-    if (shouldSave) { updateCounts(); saveState(); }
-  }
-
-  // ── Buttons → staging pool ──
-  document.getElementById('add-postit-btn').addEventListener('click', () => {
-    const text = postitInput.value.trim();
-    if (!text) { postitInput.focus(); return; }
-    addPostitToZone(text, selectedColor, 'staging-pool');
-    postitInput.value = '';
-    charCurrent.textContent = '0';
-    charCurrent.parentElement.classList.remove('warn');
-    postitInput.focus();
-  });
-  postitInput.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('add-postit-btn').click(); });
-
-  const imgInput = document.getElementById('img-input');
-  const fileNameDisplay = document.getElementById('file-name-display');
-  imgInput.addEventListener('change', () => { fileNameDisplay.textContent = imgInput.files[0]?.name || 'Nenhum arquivo'; });
-  document.getElementById('add-img-btn').addEventListener('click', () => {
-    const file = imgInput.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => { addImageToZone(e.target.result, 'staging-pool'); imgInput.value = ''; fileNameDisplay.textContent = 'Nenhum arquivo'; };
-    reader.readAsDataURL(file);
-  });
-
-  document.getElementById('clear-all-btn').addEventListener('click', clearAll);
-
-  // ═══ Export / Import ═══
+  // ═══ Estado ═══
   function buildStateData() {
     const data = {};
     ALL_ZONES.forEach(zid => {
-      const zone = document.getElementById(zid);
       const items = [];
-      zone.querySelectorAll('.postit, .tier-image').forEach(el => {
+      $(zid).querySelectorAll('.postit, .tier-image').forEach(el => {
         if (el.classList.contains('postit')) {
-          items.push({ type: 'postit', text: el.querySelector('.postit-text').textContent, color: el.style.background, rotation: el.style.getPropertyValue('--rotation') });
-        } else if (el.classList.contains('tier-image')) {
+          items.push({
+            type: 'postit',
+            text: el.querySelector('.postit-text').textContent,
+            color: el.style.background,
+            rotation: el.style.getPropertyValue('--rotation')
+          });
+        } else {
           items.push({ type: 'image', src: el.querySelector('img').src });
         }
       });
@@ -947,60 +911,92 @@
     return data;
   }
 
-  function exportState() {
-    const data = buildStateData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const now = new Date();
-    const stamp = now.toISOString().slice(0,16).replace('T','_').replace(':','-');
-    a.href = url;
-    a.download = `tierlist_${stamp}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('📤 Exportado com sucesso');
+  function isValidState(data) {
+    return !!data && typeof data === 'object' && ALL_ZONES.some(k => Array.isArray(data[k]));
   }
 
-  function importState(file) {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      try {
-        const data = JSON.parse(e.target.result);
-        // Validate structure
-        const validKeys = ALL_ZONES;
-        const hasValid = validKeys.some(k => Array.isArray(data[k]));
-        if (!hasValid) { showToast('⚠️ Arquivo inválido'); return; }
-        if (!confirm('Importar substituirá o estado atual. Continuar?')) return;
-        ALL_ZONES.forEach(id => { document.getElementById(id).innerHTML = ''; });
-        ALL_ZONES.forEach(zid => {
-          const items = data[zid];
-          if (!Array.isArray(items)) return;
-          items.forEach(item => {
-            if (item.type === 'postit') addPostitToZone(item.text, item.color, zid, item.rotation, false);
-            else if (item.type === 'image') addImageToZone(item.src, zid, false);
-          });
-        });
-        updateCounts();
-        saveState();
-        showToast('📥 Importado com sucesso');
-      } catch (err) {
-        showToast('⚠️ Erro ao importar');
-        console.error('Import error:', err);
-      }
-    };
-    reader.readAsText(file);
+  function saveState(quiet = false) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ v: 3, gistStamp, data: buildStateData() }));
+      if (!quiet) showToast('✓ Salvo neste navegador');
+    } catch (e) { console.warn('Save error:', e); }
   }
 
-  document.getElementById('export-btn').addEventListener('click', exportState);
+  function readLocalState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      // Formato antigo: o próprio mapa de zonas na raiz
+      if (isValidState(parsed)) return { data: parsed, gistStamp: null };
+      if (parsed && isValidState(parsed.data)) return { data: parsed.data, gistStamp: parsed.gistStamp || null };
+      return null;
+    } catch (e) { console.warn('Load error:', e); return null; }
+  }
 
-  const importInput = document.getElementById('import-input');
-  importInput.addEventListener('change', () => {
-    importState(importInput.files[0]);
-    importInput.value = '';
-  });
+  function renderState(data) {
+    ALL_ZONES.forEach(id => { $(id).innerHTML = ''; });
+    ALL_ZONES.forEach(zid => {
+      const items = data[zid];
+      if (!Array.isArray(items)) return;
+      items.forEach(item => {
+        if (item.type === 'postit') addPostitToZone(item.text, item.color, zid, item.rotation, false);
+        else if (item.type === 'image') addImageToZone(item.src, zid, false);
+      });
+    });
+    updateCounts();
+  }
 
-  // ═══ Drag & Drop ═══
+  function clearAll() {
+    if (!requireAdmin()) return;
+    if (!confirm('Limpar todos os itens do banco e das categorias?')) return;
+    ALL_ZONES.forEach(id => { $(id).innerHTML = ''; });
+    updateCounts();
+    saveState();
+  }
+
+  // ═══ Criação de itens ═══
+  function addPostitToZone(text, color, zoneId, rotation, shouldSave = true) {
+    if (!text || !text.trim()) return;
+    const note = document.createElement('div');
+    note.className = 'postit';
+    note.draggable = true;
+    note.style.background = color;
+    note.style.setProperty('--rotation', rotation || (randomRotation() + 'deg'));
+    note.innerHTML = `<span class="postit-text">${escapeHtml(text)}</span><button class="delete-btn admin-only" title="Remover">✕</button>`;
+    note.querySelector('.delete-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      if (!requireAdmin()) return;
+      note.remove(); updateCounts(); saveState();
+    });
+    addDragEvents(note);
+    $(zoneId).appendChild(note);
+    if (shouldSave) { updateCounts(); saveState(); }
+  }
+
+  function addImageToZone(src, zoneId, shouldSave = true) {
+    const item = document.createElement('div');
+    item.className = 'tier-image';
+    item.draggable = true;
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = 'Item';
+    const del = document.createElement('button');
+    del.className = 'delete-btn admin-only';
+    del.title = 'Remover';
+    del.textContent = '✕';
+    del.addEventListener('click', e => {
+      e.stopPropagation();
+      if (!requireAdmin()) return;
+      item.remove(); updateCounts(); saveState();
+    });
+    item.append(img, del);
+    addDragEvents(item);
+    $(zoneId).appendChild(item);
+    if (shouldSave) { updateCounts(); saveState(); }
+  }
+
+  // ═══ Drag & Drop (disponível para todos) ═══
   let draggedEl = null;
 
   function addDragEvents(el) {
@@ -1017,8 +1013,19 @@
     });
   }
 
+  function getDragAfter(container, y) {
+    const els = [...container.querySelectorAll('.postit:not(.dragging), .tier-image:not(.dragging)')];
+    let closest = { off: Infinity, el: null };
+    els.forEach(child => {
+      const box = child.getBoundingClientRect();
+      const off = y - box.top - box.height / 2;
+      if (off < 0 && -off < closest.off) closest = { off: -off, el: child };
+    });
+    return closest.el;
+  }
+
   ALL_ZONES.forEach(zoneId => {
-    const zone = document.getElementById(zoneId);
+    const zone = $(zoneId);
 
     zone.addEventListener('dragover', e => {
       e.preventDefault();
@@ -1051,424 +1058,444 @@
         else zone.appendChild(draggedEl);
       }
       updateCounts();
-      saveState();
+      saveState(true);
     });
   });
 
-  function getDragAfter(container, y) {
-    const els = [...container.querySelectorAll('.postit:not(.dragging), .tier-image:not(.dragging)')];
-    let closest = { off: Infinity, el: null };
-    els.forEach(child => {
-      const box = child.getBoundingClientRect();
-      const off = y - box.top - box.height / 2;
-      if (off < 0 && -off < closest.off) closest = { off: -off, el: child };
-    });
-    return closest.el;
+  // ═══ Exportar / Importar ═══
+  function exportState() {
+    const blob = new Blob([JSON.stringify(buildStateData(), null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', '-');
+    a.href = url;
+    a.download = `mapa-atividades_${stamp}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('📤 Exportado com sucesso');
   }
 
-  // ── Init ──
-  // Try loading from gist first, then fallback to localStorage
-  (async () => {
-    const config = loadGistConfigFromStorage();
-    let loadedFromGist = false;
-
-    if (config && config.gistUrl) {
+  function importState(file) {
+    if (!file || !requireAdmin()) return;
+    const reader = new FileReader();
+    reader.onload = e => {
       try {
-        // Usar token salvo se disponível
-        const headers = {
-          'Accept': 'application/json'
-        };
-        if (config.gistToken) {
-          headers['Authorization'] = `token ${config.gistToken}`;
-        }
+        const data = JSON.parse(e.target.result);
+        if (!isValidState(data)) { showToast('⚠️ Arquivo inválido'); return; }
+        if (!confirm('Importar substituirá o estado atual. Continuar?')) return;
+        renderState(data);
+        saveState();
+        showToast('📥 Importado — publique no Gist para a turma ver');
+      } catch (err) {
+        showToast('⚠️ Erro ao importar');
+        console.error('Import error:', err);
+      }
+    };
+    reader.readAsText(file);
+  }
 
-        let data = null;
-        let success = false;
+  // ═══ Configuração pública (gist-config.json) ═══
+  function normalizeRawUrl(url) {
+    // Remove o SHA da revisão para sempre buscar a versão mais recente do arquivo
+    return url.replace(
+      /^(https:\/\/gist\.githubusercontent\.com\/[^/]+\/[0-9a-fA-F]+\/raw\/)[0-9a-fA-F]{32,40}\//,
+      '$1'
+    );
+  }
 
-        // Tentar com API se preferência está ativada
-        if (config.useApi) {
-          try {
-            const gistId = extractGistId(config.gistUrl);
-            if (gistId) {
-              const headers2 = {
-                'Accept': 'application/vnd.github.v3+json'
-              };
-              if (config.gistToken) {
-                headers2['Authorization'] = `token ${config.gistToken}`;
-              }
+  function extractGistId(url) {
+    const m = url.match(/gist\.githubusercontent\.com\/[^/]+\/([0-9a-fA-F]+)/) ||
+              url.match(/gist\.github\.com\/[^/]+\/([0-9a-fA-F]+)/);
+    return m ? m[1] : null;
+  }
 
-              const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers: headers2 });
-              
-              if (response.ok) {
-                const gistData = await response.json();
-                const files = Object.values(gistData.files);
-                if (files.length > 0) {
-                  data = JSON.parse(files[0].content);
-                  success = true;
-                }
-              }
-            }
-          } catch (e) {
-            console.warn('API fallback failed:', e);
-          }
-        }
+  function extractGistFile(url) {
+    const clean = url.split('?')[0];
+    const name = clean.substring(clean.lastIndexOf('/') + 1);
+    return /\.[a-z0-9]+$/i.test(name) ? name : null;
+  }
 
-        // Fallback para URL raw
-        if (!success) {
-          const response = await fetch(config.gistUrl, { 
-            headers,
-            credentials: 'omit'
-          });
-          
-          if (response.ok) {
-            data = await response.json();
-            success = true;
-          }
-        }
+  async function fetchRemoteConfig() {
+    const res = await fetch(`${CONFIG_URL}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status} ao ler ${CONFIG_URL}`);
+    const cfg = await res.json();
+    if (!cfg.gistUrl) throw new Error(`gistUrl ausente em ${CONFIG_URL}`);
+    const gistUrl = normalizeRawUrl(cfg.gistUrl.trim());
+    return {
+      gistUrl,
+      gistId: cfg.gistId || extractGistId(gistUrl),
+      gistFile: cfg.gistFile || extractGistFile(gistUrl),
+      enabled: cfg.enabled !== false
+    };
+  }
 
-        if (success && data) {
-          const validKeys = ALL_ZONES;
-          const hasValid = validKeys.some(k => Array.isArray(data[k]));
+  let lastSourceMessage = null;
+  let lastSourceOk = false;
 
-          if (hasValid) {
-            ALL_ZONES.forEach(zid => {
-              const items = data[zid];
-              if (!Array.isArray(items)) return;
-              items.forEach(item => {
-                if (item.type === 'postit') addPostitToZone(item.text, item.color, zid, item.rotation, false);
-                else if (item.type === 'image') addImageToZone(item.src, zid, false);
-              });
-            });
-            updateCounts();
-            loadedFromGist = true;
-            console.log('✓ Estado carregado do Gist com sucesso');
-          }
-        }
+  function renderSourceInfo(message, ok) {
+    if (message === undefined) { message = lastSourceMessage; ok = lastSourceOk; }
+    else { lastSourceMessage = message; lastSourceOk = ok; }
+
+    const box = $('gist-source-info');
+    if (!remoteConfig) {
+      box.innerHTML = `<span style="color:var(--ensino-light)">${escapeHtml(message || 'Configuração indisponível')}</span>`;
+      return;
+    }
+    const rows = [
+      ['URL', remoteConfig.gistUrl],
+      ['Gist', remoteConfig.gistId || '—'],
+      ['Arquivo', remoteConfig.gistFile || '—'],
+      ['Leitura', remoteConfig.enabled ? 'ativada' : 'desativada (enabled: false)']
+    ];
+    box.innerHTML = rows.map(([k, v]) =>
+      `<div class="info-row"><span class="info-key">${k}:</span><code>${escapeHtml(String(v))}</code></div>`
+    ).join('') + (message
+      ? `<div class="info-row" style="margin-top:0.45rem;color:${ok ? '#a8e6cf' : 'var(--ensino-light)'}">${escapeHtml(message)}</div>`
+      : '');
+  }
+
+  // ═══ Leitura do Gist ═══
+  async function fetchGistState() {
+    if (!remoteConfig || !remoteConfig.gistUrl) throw new Error('Configuração do Gist indisponível');
+
+    const errors = [];
+
+    // 1) URL raw — funciona para gists públicos e secretos, sem token
+    try {
+      const res = await fetch(`${remoteConfig.gistUrl}${remoteConfig.gistUrl.includes('?') ? '&' : '?'}t=${Date.now()}`, {
+        cache: 'no-store',
+        credentials: 'omit'
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = JSON.parse(await res.text());
+      if (!isValidState(data)) throw new Error('JSON fora do formato esperado');
+      return { data, stamp: hashContent(data) };
+    } catch (e) {
+      errors.push(`URL raw: ${e.message}`);
+    }
+
+    // 2) API do GitHub — fallback (usa token do admin, se houver)
+    if (remoteConfig.gistId) {
+      try {
+        const headers = { 'Accept': 'application/vnd.github+json' };
+        if (adminToken) headers['Authorization'] = `Bearer ${adminToken}`;
+        const res = await fetch(`https://api.github.com/gists/${remoteConfig.gistId}`, { headers, cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const gist = await res.json();
+        const file = (remoteConfig.gistFile && gist.files[remoteConfig.gistFile]) || Object.values(gist.files)[0];
+        if (!file) throw new Error('Gist sem arquivos');
+        const data = JSON.parse(file.content);
+        if (!isValidState(data)) throw new Error('JSON fora do formato esperado');
+        return { data, stamp: hashContent(data) };
       } catch (e) {
-        console.warn('Failed to load from gist, falling back to localStorage:', e);
+        errors.push(`API GitHub: ${e.message}`);
       }
     }
 
-    // If gist load failed, load from localStorage
-    if (!loadedFromGist) {
-      loadState();
-    }
-  })();
-
-  const GIST_CONFIG_KEY = 'tierlist-gist-config';
-  let currentGistToken = null; // Token em uso durante sessão
-
-  function openAdminModal() {
-    const modal = document.getElementById('admin-modal');
-    modal.classList.add('active');
-    loadGistConfig();
+    throw new Error(errors.join(' · '));
   }
 
-  function closeAdminModal() {
-    const modal = document.getElementById('admin-modal');
-    modal.classList.remove('active');
+  async function reloadFromGist(interactive = true) {
+    if (!remoteConfig || !remoteConfig.enabled) {
+      showToast('⚠️ Leitura do Gist desativada');
+      return;
+    }
+    if (interactive && !confirm('Recarregar o estado publicado no Gist? Sua organização local será substituída.')) return;
+    try {
+      const { data, stamp } = await fetchGistState();
+      renderState(data);
+      gistStamp = stamp;
+      saveState(true);
+      renderSourceInfo('✓ Estado carregado do Gist', true);
+      showToast('🔄 Estado recarregado do Gist');
+    } catch (e) {
+      console.warn('Reload error:', e);
+      renderSourceInfo(`Falha ao carregar: ${e.message}`, false);
+      showToast('⚠️ Falha ao carregar do Gist');
+    }
+  }
+
+  // ═══ Modo administrador ═══
+  function setAdminMode(on) {
+    isAdmin = on;
+    document.body.classList.toggle('is-admin', on);
+    $('admin-pill').textContent = on ? 'admin' : 'leitura';
+    $('admin-login-group').style.display = on ? 'none' : '';
+    $('btn-admin-login').style.display = on ? 'none' : '';
+  }
+
+  function requireAdmin() {
+    if (isAdmin) return true;
+    showToast('🔒 Apenas o administrador pode editar');
+    return false;
+  }
+
+  function readStoredToken() {
+    try {
+      return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || null;
+    } catch (e) { return null; }
+  }
+
+  function storeToken(token, remember) {
+    try {
+      sessionStorage.setItem(TOKEN_KEY, token);
+      if (remember) localStorage.setItem(TOKEN_KEY, token);
+      else localStorage.removeItem(TOKEN_KEY);
+    } catch (e) { console.warn('Token storage error:', e); }
+  }
+
+  function forgetToken() {
+    try {
+      sessionStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+    } catch (e) { /* ignore */ }
   }
 
   function showGistStatus(msg, type = 'info') {
-    const status = document.getElementById('gist-status');
+    const status = $('gist-status');
     status.textContent = msg;
     status.className = `gist-status ${type}`;
-    if (msg) status.style.display = 'block';
-    else status.style.display = 'none';
+    status.style.display = msg ? 'block' : 'none';
   }
 
   function showGistStatusWithSpinner(msg) {
-    const status = document.getElementById('gist-status');
-    status.innerHTML = `<span class="spinner"></span> ${msg}`;
+    const status = $('gist-status');
+    status.innerHTML = `<span class="spinner"></span> ${escapeHtml(msg)}`;
     status.className = 'gist-status loading';
     status.style.display = 'flex';
   }
 
-  function updateCurrentStatus() {
-    const config = loadGistConfigFromStorage();
-    const statusDiv = document.getElementById('gist-current-status');
-    if (!config || !config.gistUrl) {
-      statusDiv.textContent = 'Nenhuma configuração carregada';
-      statusDiv.style.color = 'var(--text-muted)';
+  function describeHttpError(status) {
+    if (status === 401) return 'Token inválido ou expirado (401)';
+    if (status === 403) return 'Sem permissão — verifique o escopo "gist" do token (403)';
+    if (status === 404) return 'Gist não encontrado ou token sem acesso a ele (404)';
+    if (status === 422) return 'Requisição rejeitada pelo GitHub (422)';
+    return `HTTP ${status}`;
+  }
+
+  // Confirma que o token pode escrever neste Gist: precisa ser do dono
+  async function verifyAdminToken(token) {
+    if (!remoteConfig || !remoteConfig.gistId) {
+      throw new Error('ID do Gist não identificado em gist-config.json');
+    }
+    const headers = { 'Accept': 'application/vnd.github+json', 'Authorization': `Bearer ${token}` };
+
+    const userRes = await fetch('https://api.github.com/user', { headers, cache: 'no-store' });
+    if (!userRes.ok) throw new Error(describeHttpError(userRes.status));
+    const user = await userRes.json();
+
+    const gistRes = await fetch(`https://api.github.com/gists/${remoteConfig.gistId}`, { headers, cache: 'no-store' });
+    if (!gistRes.ok) throw new Error(describeHttpError(gistRes.status));
+    const gist = await gistRes.json();
+
+    const owner = gist.owner && gist.owner.login;
+    if (owner && owner.toLowerCase() !== String(user.login).toLowerCase()) {
+      throw new Error(`O token pertence a "${user.login}", mas o Gist é de "${owner}"`);
+    }
+    return user.login;
+  }
+
+  async function adminLogin() {
+    const token = $('gist-token-input').value.trim();
+    if (!token) { showGistStatus('⚠️ Informe o token de acesso', 'error'); return; }
+
+    showGistStatusWithSpinner('Verificando token no GitHub…');
+    try {
+      const login = await verifyAdminToken(token);
+      adminToken = token;
+      storeToken(token, $('remember-token').checked);
+      setAdminMode(true);
+      $('gist-token-input').value = '';
+      showGistStatus(`✓ Autenticado como ${login} — edição liberada`, 'success');
+      showToast('🔓 Modo administrador ativo');
+    } catch (e) {
+      adminToken = null;
+      setAdminMode(false);
+      showGistStatus(`⚠️ ${e.message}`, 'error');
+    }
+  }
+
+  function adminLogout() {
+    adminToken = null;
+    forgetToken();
+    setAdminMode(false);
+    $('gist-token-input').value = '';
+    $('remember-token').checked = false;
+    showGistStatus('🔒 Sessão encerrada — modo leitura', 'success');
+    showToast('🔒 Modo leitura');
+  }
+
+  async function publishToGist() {
+    if (!requireAdmin() || !adminToken) return;
+    if (!remoteConfig || !remoteConfig.gistId) {
+      showGistStatus('⚠️ ID do Gist não identificado em gist-config.json', 'error');
       return;
     }
-    const shortUrl = config.gistUrl.substring(0, 60) + '...';
-    statusDiv.innerHTML = `✓ Configurado: <code style="font-family:monospace;font-size:0.75rem;">${shortUrl}</code>`;
-    statusDiv.style.color = '#a8e6cf';
-  }
+    const filename = remoteConfig.gistFile || 'MapaPIEPE.json';
+    if (!confirm(`Publicar o estado atual em ${filename}? Todos os visitantes passarão a ver esta versão.`)) return;
 
-  function loadGistConfigFromStorage() {
+    const data = buildStateData();
+    showGistStatusWithSpinner('Publicando no Gist…');
     try {
-      const raw = localStorage.getItem(GIST_CONFIG_KEY);
-      return raw ? JSON.parse(raw) : null;
+      const res = await fetch(`https://api.github.com/gists/${remoteConfig.gistId}`, {
+        method: 'PATCH',
+        headers: {
+          'Accept': 'application/vnd.github+json',
+          'Authorization': `Bearer ${adminToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ files: { [filename]: { content: JSON.stringify(data, null, 2) } } })
+      });
+      if (!res.ok) throw new Error(describeHttpError(res.status));
+
+      gistStamp = hashContent(data);
+      saveState(true);
+      showGistStatus('✓ Estado publicado no Gist', 'success');
+      renderSourceInfo('✓ Publicado agora', true);
+      showToast('☁️ Publicado no Gist');
     } catch (e) {
-      console.warn('Error loading gist config:', e);
-      return null;
+      console.error('Publish error:', e);
+      showGistStatus(`⚠️ Falha ao publicar: ${e.message}`, 'error');
     }
   }
 
-  function saveGistConfigToStorage(config) {
-    try {
-      localStorage.setItem(GIST_CONFIG_KEY, JSON.stringify(config));
-      showToast('✓ Configuração salva');
-    } catch (e) {
-      console.warn('Error saving gist config:', e);
-      showToast('⚠️ Erro ao salvar');
-    }
-  }
-
-  function loadGistConfig() {
-    const config = loadGistConfigFromStorage();
-    const urlInput = document.getElementById('gist-url-input');
-    const tokenInput = document.getElementById('gist-token-input');
-    const useApiCheckbox = document.getElementById('gist-use-api');
-    
-    if (config) {
-      urlInput.value = config.gistUrl || '';
-      tokenInput.value = config.gistToken || '';
-      if (config.gistToken) currentGistToken = config.gistToken;
-      useApiCheckbox.checked = config.useApi || false;
-    } else {
-      urlInput.value = '';
-      tokenInput.value = '';
-      useApiCheckbox.checked = false;
-      currentGistToken = null;
-    }
+  // ═══ Modal ═══
+  function openAdminModal() {
+    $('admin-modal').classList.add('active');
     showGistStatus('', 'info');
-    updateCurrentStatus();
+    renderSourceInfo();
   }
 
-  async function validateAndLoadGist() {
-    const gistUrl = document.getElementById('gist-url-input').value.trim();
-    const gistToken = document.getElementById('gist-token-input').value.trim();
-    const useApi = document.getElementById('gist-use-api').checked;
+  function closeAdminModal() {
+    $('admin-modal').classList.remove('active');
+  }
 
-    if (!gistUrl) {
-      showGistStatus('⚠️ URL do Gist é obrigatória', 'error');
-      return;
-    }
+  // ═══ Listeners ═══
+  $('color-picker').addEventListener('click', e => {
+    const sw = e.target.closest('.color-swatch');
+    if (!sw) return;
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+    sw.classList.add('selected');
+    selectedColor = sw.dataset.color;
+  });
 
-    // Validar URL
+  const postitInput = $('postit-input');
+  const charCurrent = $('char-current');
+  postitInput.addEventListener('input', () => {
+    const len = postitInput.value.length;
+    charCurrent.textContent = len;
+    charCurrent.parentElement.classList.toggle('warn', len >= 22);
+  });
+
+  $('add-postit-btn').addEventListener('click', () => {
+    if (!requireAdmin()) return;
+    const text = postitInput.value.trim();
+    if (!text) { postitInput.focus(); return; }
+    addPostitToZone(text, selectedColor, 'staging-pool');
+    postitInput.value = '';
+    charCurrent.textContent = '0';
+    charCurrent.parentElement.classList.remove('warn');
+    postitInput.focus();
+  });
+  postitInput.addEventListener('keydown', e => { if (e.key === 'Enter') $('add-postit-btn').click(); });
+
+  const imgInput = $('img-input');
+  const fileNameDisplay = $('file-name-display');
+  imgInput.addEventListener('change', () => { fileNameDisplay.textContent = imgInput.files[0]?.name || 'Nenhum arquivo'; });
+  $('add-img-btn').addEventListener('click', () => {
+    if (!requireAdmin()) return;
+    const file = imgInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      addImageToZone(e.target.result, 'staging-pool');
+      imgInput.value = '';
+      fileNameDisplay.textContent = 'Nenhum arquivo';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  $('clear-all-btn').addEventListener('click', clearAll);
+  $('export-btn').addEventListener('click', exportState);
+  $('reload-gist-btn').addEventListener('click', () => reloadFromGist(true));
+
+  const importInput = $('import-input');
+  importInput.addEventListener('change', () => {
+    importState(importInput.files[0]);
+    importInput.value = '';
+  });
+
+  $('open-admin-modal-btn').addEventListener('click', openAdminModal);
+  $('modal-close-btn').addEventListener('click', closeAdminModal);
+  $('modal-cancel-btn').addEventListener('click', closeAdminModal);
+  $('modal-reload-btn').addEventListener('click', () => reloadFromGist(true));
+  $('btn-admin-login').addEventListener('click', adminLogin);
+  $('btn-admin-logout').addEventListener('click', adminLogout);
+  $('btn-publish-gist').addEventListener('click', publishToGist);
+  $('gist-token-input').addEventListener('keydown', e => { if (e.key === 'Enter') adminLogin(); });
+
+  $('admin-modal').addEventListener('click', e => { if (e.target.id === 'admin-modal') closeAdminModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && $('admin-modal').classList.contains('active')) closeAdminModal();
+  });
+
+  // ═══ Inicialização ═══
+  (async () => {
+    setAdminMode(false);
+
+    const local = readLocalState();
+    let applied = false;
+
     try {
-      new URL(gistUrl);
+      remoteConfig = await fetchRemoteConfig();
+      renderSourceInfo();
     } catch (e) {
-      showGistStatus('⚠️ URL do Gist inválida', 'error');
-      return;
+      console.warn('Config error:', e);
+      renderSourceInfo(e.message, false);
     }
 
-    // Validar token se fornecido
-    if (gistToken && !gistToken.startsWith('ghp_')) {
-      showGistStatus('⚠️ Token deve começar com "ghp_"', 'error');
-      return;
-    }
-
-    showGistStatusWithSpinner('Validando e carregando Gist...');
-
-    try {
-      // Armazenar token em memória e localStorage
-      currentGistToken = gistToken || null;
-      
-      let data = null;
-      let success = false;
-      let lastError = null;
-
-      // Tentar diferentes métodos
-      const methods = [];
-
-      // Método 1: API do GitHub (se checkbox estiver marcado)
-      if (useApi) {
-        methods.push({
-          name: 'GitHub API',
-          fetchFn: async () => {
-            const gistId = extractGistId(gistUrl);
-            if (!gistId) throw new Error('Não foi possível extrair ID do Gist');
-            
-            const headers = {
-              'Accept': 'application/vnd.github.v3+json'
-            };
-            if (currentGistToken) {
-              headers['Authorization'] = `token ${currentGistToken}`;
-            }
-
-            const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
-            
-            if (!response.ok) {
-              throw new Error(`HTTP ${response.status}`);
-            }
-
-            const gistData = await response.json();
-            // Extrair o JSON do primeiro arquivo
-            const files = Object.values(gistData.files);
-            if (files.length === 0) throw new Error('Gist sem arquivos');
-            
-            const firstFile = files[0];
-            return JSON.parse(firstFile.content);
-          }
-        });
+    // Restaura sessão de administrador, se houver token guardado
+    const stored = readStoredToken();
+    if (stored && remoteConfig && remoteConfig.gistId) {
+      try {
+        await verifyAdminToken(stored);
+        adminToken = stored;
+        setAdminMode(true);
+        $('remember-token').checked = !!localStorage.getItem(TOKEN_KEY);
+      } catch (e) {
+        console.warn('Token restore failed:', e.message);
+        forgetToken();
       }
+    }
 
-      // Método 2: URL raw direto
-      methods.push({
-        name: 'URL Raw (direto)',
-        fetchFn: async () => {
-          const headers = {
-            'Accept': 'application/json'
-          };
-          if (currentGistToken) {
-            headers['Authorization'] = `token ${currentGistToken}`;
-          }
-
-          const response = await fetch(gistUrl, { 
-            headers,
-            credentials: 'omit'
-          });
-          
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-
-          return await response.json();
+    if (remoteConfig && remoteConfig.enabled) {
+      try {
+        const { data, stamp } = await fetchGistState();
+        // Mantém a organização local se ela veio desta mesma versão do Gist
+        if (local && local.gistStamp && local.gistStamp === stamp) {
+          renderState(local.data);
+          gistStamp = stamp;
+          renderSourceInfo('✓ Gist lido — mantendo a organização local desta versão', true);
+        } else {
+          renderState(data);
+          gistStamp = stamp;
+          saveState(true);
+          renderSourceInfo('✓ Estado carregado do Gist', true);
         }
-      });
-
-      // Método 3: jsDelivr CDN (proxy CORS público)
-      methods.push({
-        name: 'jsDelivr CDN',
-        fetchFn: async () => {
-          const gistId = extractGistId(gistUrl);
-          if (!gistId) throw new Error('Não foi possível extrair ID do Gist');
-          
-          // Tentar via jsDelivr
-          const cdnUrl = `https://cdn.jsdelivr.net/gh/gist/${gistId}@main/MapaPIEPE.json`;
-          const response = await fetch(cdnUrl, { 
-            headers: { 'Accept': 'application/json' }
-          });
-          
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-
-          return await response.json();
-        }
-      });
-
-      // Tentar cada método
-      for (const method of methods) {
-        try {
-          console.log(`Tentando ${method.name}...`);
-          data = await method.fetchFn();
-          success = true;
-          console.log(`✓ Sucesso com ${method.name}`);
-          break;
-        } catch (err) {
-          lastError = `${method.name}: ${err.message}`;
-          console.warn(lastError);
-        }
+        applied = true;
+      } catch (e) {
+        console.warn('Gist load failed:', e);
+        renderSourceInfo(`Falha ao carregar: ${e.message}`, false);
       }
-
-      if (!success || !data) {
-        throw new Error('Todos os métodos falharam: ' + lastError);
-      }
-
-      // Validate JSON structure
-      const validKeys = ALL_ZONES;
-      const hasValid = validKeys.some(k => Array.isArray(data[k]));
-
-      if (!hasValid) {
-        showGistStatus('⚠️ Formato JSON inválido - esperado: { "staging-pool": [], "tier-ensino": [], ... }', 'error');
-        return;
-      }
-
-      // Success - save config with token and API preference
-      showGistStatus('✓ Gist carregado com sucesso', 'success');
-
-      // Save config (URL, token e preferência de API)
-      const config = { gistUrl, gistToken, useApi };
-      saveGistConfigToStorage(config);
-
-      // Ask to import
-      if (confirm('Deseja importar o estado do Gist agora?')) {
-        ALL_ZONES.forEach(id => { document.getElementById(id).innerHTML = ''; });
-        ALL_ZONES.forEach(zid => {
-          const items = data[zid];
-          if (!Array.isArray(items)) return;
-          items.forEach(item => {
-            if (item.type === 'postit') addPostitToZone(item.text, item.color, zid, item.rotation, false);
-            else if (item.type === 'image') addImageToZone(item.src, zid, false);
-          });
-        });
-        updateCounts();
-        saveState();
-        showToast('📥 Importado do Gist com sucesso');
-      }
-
-      updateCurrentStatus();
-    } catch (error) {
-      console.error('Gist validation error:', error);
-      let msg = `⚠️ Erro: ${error.message}`;
-      
-      if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
-        msg = '⚠️ Erro de CORS - Tente: 1) Ativar "Usar API do GitHub", 2) Verificar URL, 3) Usar Gist público';
-      }
-      
-      showGistStatus(msg, 'error');
     }
-  }
 
-  function extractGistId(url) {
-    // Extrair ID do Gist de URL raw: https://gist.githubusercontent.com/user/ID/raw/...
-    const match = url.match(/gist\.githubusercontent\.com\/[^/]+\/([a-f0-9]+)\//);
-    if (match) return match[1];
-    
-    // Tentar formato: https://gist.github.com/user/ID
-    const match2 = url.match(/gist\.github\.com\/[^/]+\/([a-f0-9]+)/);
-    if (match2) return match2[1];
-    
-    return null;
-  }
-
-  function clearGistConfig() {
-    if (!confirm('Limpar configuração do Gist?')) return;
-    localStorage.removeItem(GIST_CONFIG_KEY);
-    document.getElementById('gist-url-input').value = '';
-    document.getElementById('gist-token-input').value = '';
-    currentGistToken = null; // Limpar token em memória também
-    showGistStatus('✓ Configuração limpa', 'success');
-    updateCurrentStatus();
-    showToast('🗑️ Configuração removida');
-  }
-
-  // Event listeners
-  document.getElementById('open-admin-modal-btn').addEventListener('click', openAdminModal);
-  document.getElementById('modal-close-btn').addEventListener('click', closeAdminModal);
-  document.getElementById('modal-cancel-btn').addEventListener('click', closeAdminModal);
-
-  document.getElementById('modal-save-config-btn').addEventListener('click', () => {
-    const gistUrl = document.getElementById('gist-url-input').value.trim();
-    const gistToken = document.getElementById('gist-token-input').value.trim();
-    const useApi = document.getElementById('gist-use-api').checked;
-
-    if (gistUrl) {
-      // Armazenar token em memória e localStorage
-      currentGistToken = gistToken || null;
-      
-      // Salvar URL, token e preferência de API na storage
-      const config = { gistUrl, gistToken, useApi };
-      saveGistConfigToStorage(config);
-      updateCurrentStatus();
-      closeAdminModal();
-    } else {
-      showGistStatus('⚠️ URL do Gist é obrigatória', 'error');
+    if (!applied && local) {
+      renderState(local.data);
+      gistStamp = local.gistStamp;
     }
-  });
 
-  document.getElementById('btn-validate-gist').addEventListener('click', validateAndLoadGist);
-  document.getElementById('btn-clear-gist-config').addEventListener('click', clearGistConfig);
-
-  // Close modal on overlay click
-  document.getElementById('admin-modal').addEventListener('click', e => {
-    if (e.target.id === 'admin-modal') closeAdminModal();
-  });
+    updateCounts();
+  })();
 })();
 </script>
 </body>

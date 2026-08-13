@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -)",
+      "Bash(node --check /tmp/claude-1001/-mnt-data-Git-Repo-Linux-PUC-MapaAtividades/41d40536-e72f-4dce-a0e2-0e590b1f8cbf/scratchpad/app.js)",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"console.log\\(process.version\\)\")",
+      "Bash(timeout 60 chromium-browser --headless --no-sandbox --disable-gpu --enable-logging=stderr --log-level=0 --virtual-time-budget=9000 --dump-dom http://localhost:8765/_admin-test.html)",
+      "Bash(pkill -f \"http.server 8765\")",
+      "Bash(grep -n '```text\\\\|^### ' GIST_SETUP.md)"
+    ]
+  }
+}

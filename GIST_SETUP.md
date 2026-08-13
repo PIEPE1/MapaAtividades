@@ -1,29 +1,23 @@
 # Configuração de Sincronização com Gist
 
-Este guia explica como configurar a sincronização de estados de cards com um Gist do GitHub.
+Este guia explica como publicar o estado do Mapa de Atividades em um Gist do GitHub.
 
-## O que é?
+## Modelo de uso
 
-O sistema de Gist permite:
-- **Salvar estados de cards** em um Gist do GitHub de forma centralizada
-- **Compartilhar configurações** entre múltiplos usuários
-- **Versionar históricos** de estados
-- **Sincronizar automaticamente** ao carregar a página
+- **A página lê a URL do Gist no arquivo `gist-config.json`**, que é publicado junto com o site (GitHub Pages). Quem abre o site não configura nada: os cards já vêm preenchidos com o estado do Gist.
+- **Somente o administrador**, com um Personal Access Token do GitHub, pode criar/remover itens e publicar o estado no Gist.
+- **O token nunca vai para o repositório.** Ele fica só no navegador de quem administra.
 
-## Pré-requisitos
+```text
+gist-config.json (público, no repo)  ──►  página lê o Gist  ──►  todos os visitantes
+                                                  ▲
+                          token no navegador ──────┘ (só o administrador publica)
+```
 
-1. Conta no GitHub
-2. Um Gist existente (que você criará)
-3. Um Token de Acesso Pessoal do GitHub (Personal Access Token)
-
-## Como Configurar
-
-### 1. Criar um Gist
+## Passo 1 — Criar o Gist
 
 1. Acesse [gist.github.com](https://gist.github.com)
-2. Clique em "Create a new gist"
-3. Crie um arquivo com a extensão `.json` (exemplo: `tierlist-state.json`)
-4. Adicione o conteúdo JSON inicial:
+2. Crie um arquivo `.json` (ex.: `MapaPIEPE.json`) com o conteúdo inicial:
 
 ```json
 {
@@ -34,64 +28,69 @@ O sistema de Gist permite:
 }
 ```
 
-5. Clique em "Create public gist" ou "Create secret gist" 
-   - **Public**: Qualquer um com o link pode acessar
-   - **Secret**: Apenas com o link + token (recomendado para dados sensíveis)
-   
-6. **Copiar a URL RAW corretamente:**
-   - Na página do Gist, clique no botão "Raw" 
-   - A URL será algo como: `https://gist.githubusercontent.com/seu-usuario/abc123def456/raw/nome-do-arquivo.json`
-   - Copie esta URL completa
+3. Clique em **"Create secret gist"** (recomendado) ou **"Create public gist"**
+   - **Secret**: não aparece em buscas/perfil, mas a URL raw continua acessível por quem tem o link — é exatamente isso que permite a leitura sem token.
+   - Em ambos os casos, **editar** o Gist exige o token do dono.
+4. Clique no botão **"Raw"** e copie a URL.
 
-### 2. Gerar Token de Acesso Pessoal
+## Passo 2 — Preencher `gist-config.json`
+
+A URL do botão "Raw" costuma vir com o SHA da revisão:
+
+```text
+https://gist.githubusercontent.com/usuario/ID/raw/<SHA>/MapaPIEPE.json
+```
+
+Essa URL **congela** a versão. Remova o SHA para sempre buscar a versão mais recente:
+
+```json
+{
+  "gistUrl": "https://gist.githubusercontent.com/usuario/ID/raw/MapaPIEPE.json",
+  "gistId": "ID",
+  "gistFile": "MapaPIEPE.json",
+  "enabled": true
+}
+```
+
+- `gistId` e `gistFile` são opcionais (extraídos de `gistUrl` quando ausentes), mas deixá-los explícitos evita surpresas.
+- Se você colar a URL com o SHA, a página remove o SHA automaticamente ao carregar.
+- `enabled: false` desliga a leitura do Gist e a página passa a usar apenas o armazenamento local.
+
+Faça commit do `gist-config.json` — é ele que o GitHub Pages vai servir.
+
+## Passo 3 — Gerar o token do administrador
 
 1. Acesse [github.com/settings/tokens](https://github.com/settings/tokens)
-2. Clique em "Generate new token"
-3. Escolha o escopo `gist` (para leitura/escrita de gists)
-4. Copie o token (você não verá novamente!)
-5. Guarde este token em um local seguro
+2. **Generate new token** (classic) com o escopo **`gist`**
+   - Fine-grained tokens também funcionam, desde que tenham permissão de **Gists: Read and write**
+3. Copie o token (ele só aparece uma vez)
 
-### 3. Configurar na Aplicação
+O token precisa pertencer à **mesma conta dona do Gist** — a página verifica isso no login e recusa tokens de outra conta.
 
-1. Abra o site da Mapa de Atividades Acadêmicas
-2. Clique no botão **"⚙️ Administração Gist"** no topo
-3. Preencha os campos:
-   - **URL do Gist**: Cole a URL RAW que você copiou
-   - **Token de Acesso**: Cole o GitHub Personal Access Token
-4. Clique em **"🔍 Validar & Carregar"**
-5. Se tudo funcionar, clique em **"💾 Salvar Configuração"**
+## Passo 4 — Usar como administrador
 
-## Usando o Sistema
+1. Abra o site e clique em **"⚙️ Administração"**
+2. Cole o token em **"Token de Acesso (GitHub)"**
+   - Marque **"Lembrar token neste navegador"** só em máquina pessoal (`localStorage`). Sem marcar, o token vive apenas na aba atual (`sessionStorage`).
+3. Clique em **"🔓 Entrar como administrador"** — o selo no topo muda de `leitura` para `admin`
+4. Use a seção **"Criar itens"** do modal para adicionar post-its e imagens
+5. Organize os itens com drag & drop na página
+6. Clique em **"☁️ Publicar estado no Gist"**
 
-### Carregar Estado do Gist
+Para encerrar, clique em **"🔒 Sair"** (apaga o token do navegador).
 
-**Ao recarregar a página:**
-- O sistema tenta carregar automaticamente usando URL e token salvos
-- Se for Gist público, funcionará automaticamente
-- Se for Gist privado, usará o token salvo em localStorage
-- Se falhar, volta ao localStorage local
+## Como o estado é carregado
 
-**Para reconfigurar:**
-1. Clique em **"⚙️ Administração Gist"**
-2. Modifique URL ou token conforme necessário
-3. Clique em **"🔍 Validar & Carregar"** para testar
-4. Clique em **"💾 Salvar Configuração"** para persistir
+Ao abrir a página:
 
-### Salvar Alterações no Gist
+1. Lê `gist-config.json`
+2. Busca o JSON pela URL raw (sem cache); se falhar, tenta a API do GitHub
+3. Compara com o que está salvo no navegador:
+   - **Mesma versão do Gist** → mantém a organização local (o que a turma arrastou na aula continua lá)
+   - **Versão diferente** (o administrador publicou algo novo) → aplica o estado do Gist
+4. Se o Gist não puder ser lido, cai para o estado local
 
-Para salvar seu estado atual no Gist:
-1. Abra o Gist diretamente no GitHub
-2. Use o botão **"📤 Exportar"** da aplicação
-3. Copie o conteúdo JSON e atualize seu Gist manualmente
-
-### Criar Múltiplos Estados
-
-Você pode ter múltiplos Gists para diferentes cenários:
-- `aula-teoria.json` - Para aulas teóricas
-- `aula-prática.json` - Para aulas práticas
-- `semestre-novo.json` - Template para novo semestre
-
-Basta alterar a URL do Gist na configuração para trocar entre eles.
+O botão **"🔄 Recarregar"** força a volta ao estado publicado, descartando a organização local.
 
 ## Estrutura do JSON
 
@@ -115,144 +114,53 @@ Basta alterar a URL do Gist na configuração para trocar entre eles.
 }
 ```
 
-### Tipos de Items
+### Tipos de itens
 
-- **postit**: Post-it com texto
-  - `text`: Conteúdo do post-it (máx 25 caracteres)
-  - `color`: Cor em formato hex
-  - `rotation`: Rotação em graus (ex: "2.5deg")
-
-- **image**: Imagem
+- **postit**
+  - `text`: conteúdo (máx. 25 caracteres)
+  - `color`: cor em hex
+  - `rotation`: rotação (ex.: `"2.5deg"`)
+- **image**
   - `src`: URL da imagem ou Data URL (base64)
 
-## Solução para Erro de CORS
+⚠️ Imagens em base64 vão inteiras para o Gist. Muitas imagens grandes deixam o carregamento lento e podem estourar o limite do Gist — prefira URLs de imagens hospedadas quando possível.
 
-Se receber mensagem: **"Erro de CORS"** ou **"NetworkError when attempting to fetch resource"**
+## Troubleshooting
 
-### Causa
-O navegador bloqueia requisições cross-origin (CORS) para URLs do Gist quando acessadas do navegador.
+### "Token inválido ou expirado (401)"
 
-### Solução Recomendada: Usar API do GitHub
+Token errado, revogado ou expirado. Gere outro em [github.com/settings/tokens](https://github.com/settings/tokens) com escopo `gist`.
 
-1. Abra **"⚙️ Administração Gist"**
-2. Ative a opção: **☑ "Usar API do GitHub (melhor suporte CORS)"**
-3. Clique **"🔍 Validar & Carregar"**
+### "Sem permissão — verifique o escopo 'gist' (403)"
 
-A API oficial do GitHub tem suporte melhor a CORS e geralmente funciona.
+O token existe mas não tem permissão de gist, ou você atingiu o rate limit da API.
 
-### Se Ainda Não Funcionar
+### "Gist não encontrado ou token sem acesso a ele (404)"
 
-**Passo 1: Verificar a URL**
-- Copie a URL diretamente do Gist:
-  1. Abra seu Gist no navegador
-  2. Clique no botão **"Raw"** (superior direito)
-  3. Copie a URL completa
-  4. A URL deve ser algo como: `https://gist.githubusercontent.com/seu-usuario/abc123/raw/filename.json`
+O `gistId` está errado, o Gist foi deletado, ou o token é de outra conta.
 
-**Passo 2: Adicionar Token (se Gist é secreto)**
-- Gists secretos precisam de token mesmo com API do GitHub
-- Gere um token em [github.com/settings/tokens](https://github.com/settings/tokens)
-- Selecione escopo `gist`
-- Cole o token no campo "Token de Acesso"
+### "O token pertence a X, mas o Gist é de Y"
 
-**Passo 3: Tentar com Gist Público**
-- Crie um Gist público apenas para testes
-- Se funcionar, seu firewall/proxy pode estar bloqueando Gists secretos
-- Use Gist público ou configure proxy corporativo
+Gists só podem ser editados pelo dono. Use o token da conta que criou o Gist.
 
-## Troubleshooting Geral
+### A página não carrega os itens
 
-### "Token inválido ou expirado (HTTP 401)"
-- Seu token expirou ou foi revogado
-- Regenere um novo token em [github.com/settings/tokens](https://github.com/settings/tokens)
-- Verifique se tem escopo `gist` ativado
-- Quando regenera token, lembre-se de copiar imediatamente (não aparece novamente)
+- Abra a URL de `gistUrl` direto no navegador: deve mostrar o JSON bruto
+- Confira o Console (F12) — a mensagem de falha aparece também no modal, em "Origem dos dados"
+- Verifique se o JSON tem as quatro chaves de zona (`staging-pool`, `tier-ensino`, `tier-pesquisa`, `tier-extensao`)
 
-### "Acesso negado (HTTP 403)"
-- Você não tem permissão para acessar este Gist
-- Se for Gist secreto, precisa do token correto
-- Verifique se o token pertence à conta que criou o Gist
-- Gists são associados à conta que os criou
+### Publiquei, mas os visitantes veem a versão antiga
 
-### "Gist não encontrado (HTTP 404)"
-- O Gist foi deletado
-- A URL está incorreta
-- Copie a URL diretamente do Gist no navegador
-
-### Formato JSON inválido
-- Gist deve ter a estrutura correta:
-```json
-{
-  "staging-pool": [],
-  "tier-ensino": [],
-  "tier-pesquisa": [],
-  "tier-extensao": []
-}
-```
-- Cada zona contém um array de itens
-- Cada item é um objeto com `type`, `text`, `color`, etc
-- Use o botão **"📤 Exportar"** para ver o formato correto
-
-### Não carrega ao recarregar a página
-- Verifique se você clicou **"💾 Salvar Configuração"**
-- Abra DevTools (F12) → Console para ver erros
-- Se falhar ao carregar Gist, volta para localStorage local (esperado)
-- Gists privados precisam de token; públicos carregam sem
+- Confirme que `gistUrl` **não** contém o SHA da revisão
+- Peça para clicarem em **"🔄 Recarregar"** (a página já busca com `cache: no-store`, mas o CDN do GitHub pode demorar alguns segundos)
 
 ## Segurança
 
-⚠️ **Importante**: 
-- **URL e token são salvos localmente** no localStorage do navegador para conveniência
-- Dados são armazenados no seu computador/navegador, não em servidores terceirizados
-- Para máxima segurança com Gists privados, considere:
-  - Usar "Secret gist" (não publicamente visível)
-  - Usar navegador privado/incógnito se em computador compartilhado
-  - Regenerar o token periodicamente no GitHub
-  - Usar um token com escopo limitado (apenas `gist` se possível)
-- **Nunca compartilhe seu token pessoal**
-- Para remover os dados salvos, use **"🗑️ Limpar Config"**
-
-## Dicas Avançadas
-
-### Testando a URL
-Antes de salvar no aplicativo, copie a URL RAW do Gist e abra em uma abinha do navegador. Deve mostrar o JSON bruto.
-
-### Regenerar Token Expirado
-1. Vá para [github.com/settings/tokens](https://github.com/settings/tokens)
-2. Clique na token antiga e delete (🗑)
-3. Clique "Generate new token"
-4. Selecione escopo `gist`
-5. Copie o novo token e atualize no modal de administração
-
-### Versioning
-Use a data/hora no nome do arquivo para versionamento:
-- `tierlist-2024-08-12-v1.json`
-- `tierlist-2024-08-12-v2.json`
-- Mantenha múltiplos Gists para diferentes cenários
-
-### Backup
-Periodicamente, exporte seu estado atual com **"📤 Exportar"** e salve como backup local.
-
-### Colaboração
-Se múltiplos usuários precisam acessar o mesmo Gist:
-- Compartilhem a mesma URL
-- Use um token de repositório (não pessoal) se disponível
-- Considere usar um repositório Git compartilhado em vez de Gist
-
-### CORS e Firewalls
-Se receber erro de rede:
-- Verifique se seu firewall bloqueia fetch requests
-- Tente de outro navegador ou máquina
-- Gists públicos têm melhor suporte a CORS
-
-## Limpar Configuração
-
-Para remover a configuração:
-1. Abra **"⚙️ Administração Gist"**
-2. Clique em **"🗑️ Limpar Config"**
-3. Confirme na caixa de diálogo
-
-Isso não deleta o Gist no GitHub, apenas remove a configuração local.
+- `gist-config.json` é **público**: nunca coloque token nele.
+- O token fica em `sessionStorage` (apaga ao fechar a aba) ou `localStorage` (se marcar "Lembrar").
+- Em computador compartilhado (sala de aula), **não** marque "Lembrar" e clique em **"🔒 Sair"** ao final.
+- Use um token com escopo mínimo (`gist`) e regenere periodicamente.
+- O modo leitura não expõe o token: quem não tem token não consegue editar o Gist, mesmo alterando a página no próprio navegador.
 
 ---
 
