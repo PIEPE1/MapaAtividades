@@ -8,6 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='48' height='48' fill='none'><rect x='4' y='18' width='16' height='38' rx='3' fill='%23e94560' opacity='0.85'/><rect x='4' y='10' width='16' height='10' rx='3' fill='%23ff6b81'/><rect x='24' y='24' width='16' height='32' rx='3' fill='%234a90d9' opacity='0.85'/><rect x='24' y='10' width='16' height='16' rx='3' fill='%236aaee8'/><rect x='44' y='20' width='16' height='36' rx='3' fill='%238854d0' opacity='0.85'/><rect x='44' y='10' width='16' height='12' rx='3' fill='%23a070e0'/><rect x='6' y='12' width='12' height='6' rx='2' fill='white' opacity='0.3'/><rect x='26' y='12' width='12' height='6' rx='2' fill='white' opacity='0.3'/><rect x='46' y='12' width='12' height='6' rx='2' fill='white' opacity='0.3'/></svg>">
 <style>
   :root {
+    color-scheme: dark;
     --bg: #1a1a2e;
     --surface: #16213e;
     --ensino: #e94560;
@@ -19,6 +20,60 @@
     --text: #eaeaea;
     --text-muted: #a0a0b8;
     --card-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    --input-bg: rgba(0,0,0,0.3);
+    --input-border: rgba(255,255,255,0.12);
+    --input-text: #ffffff;
+    --soft-panel: rgba(255,255,255,0.04);
+    --soft-panel-strong: rgba(255,255,255,0.08);
+    --empty-text: rgba(255,255,255,0.13);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      color-scheme: light;
+      --bg: #edf3fb;
+      --surface: #ffffff;
+      --ensino: #d72652;
+      --pesquisa: #1d4f91;
+      --extensao: #6030a6;
+      --ensino-light: #f15b75;
+      --pesquisa-light: #4a90d9;
+      --extensao-light: #8f5ad7;
+      --text: #1d2433;
+      --text-muted: #48576d;
+      --card-shadow: 0 6px 28px rgba(20, 35, 60, 0.12);
+      --input-bg: #f7f9fd;
+      --input-border: rgba(25, 36, 54, 0.15);
+      --input-text: #1d2433;
+      --soft-panel: rgba(13, 22, 39, 0.03);
+      --soft-panel-strong: rgba(13, 22, 39, 0.08);
+      --empty-text: rgba(25, 36, 54, 0.22);
+    }
+  }
+
+  body[data-theme="light"] {
+    color-scheme: light;
+    --bg: #edf3fb;
+    --surface: #ffffff;
+    --ensino: #d72652;
+    --pesquisa: #1d4f91;
+    --extensao: #6030a6;
+    --ensino-light: #f15b75;
+    --pesquisa-light: #4a90d9;
+    --extensao-light: #8f5ad7;
+    --text: #1d2433;
+    --text-muted: #48576d;
+    --card-shadow: 0 6px 28px rgba(20, 35, 60, 0.12);
+    --input-bg: #f7f9fd;
+    --input-border: rgba(25, 36, 54, 0.15);
+    --input-text: #1d2433;
+    --soft-panel: rgba(13, 22, 39, 0.03);
+    --soft-panel-strong: rgba(13, 22, 39, 0.08);
+    --empty-text: rgba(25, 36, 54, 0.22);
+  }
+
+  body[data-theme="dark"] {
+    color-scheme: dark;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,6 +84,7 @@
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   body::before {
@@ -80,7 +136,7 @@
     border: 1px solid rgba(255,255,255,0.06);
     margin-bottom: 1.5rem;
     overflow: hidden;
-    transition: box-shadow 0.3s;
+    transition: box-shadow 0.3s, background-color 0.2s ease, border-color 0.2s ease;
   }
   .staging-section.drag-over {
     box-shadow: 0 0 0 3px rgba(74,144,217,0.35), var(--card-shadow);
@@ -95,6 +151,11 @@
     padding: 1rem 1.4rem;
     background: linear-gradient(135deg, rgba(42,58,92,0.5), rgba(28,42,74,0.7));
     border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  body[data-theme="light"] .staging-top {
+    background: linear-gradient(135deg, rgba(210, 227, 255, 0.9), rgba(255, 255, 255, 0.95));
+    border-bottom-color: rgba(25, 36, 54, 0.08);
   }
   .staging-top h2 {
     font-family: 'Playfair Display', serif;
@@ -133,15 +194,25 @@
   .field input[type="text"], .field select {
     padding: 0.48rem 0.65rem;
     border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.12);
-    background: rgba(0,0,0,0.3);
-    color: #fff;
+    border: 1px solid var(--input-border);
+    background: var(--input-bg);
+    color: var(--input-text);
     font-family: 'DM Sans', sans-serif;
     font-size: 0.85rem;
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, background-color 0.2s ease, color 0.2s ease;
   }
   .field input:focus, .field select:focus { border-color: var(--pesquisa-light); }
+
+  body[data-theme="light"] .field input[type="text"],
+  body[data-theme="light"] .field select,
+  body[data-theme="light"] .gist-input-group input,
+  body[data-theme="light"] .creation-bar.in-modal .field input[type="text"],
+  body[data-theme="light"] .creation-bar.in-modal .field select {
+    background: #f6f9ff;
+    color: var(--text);
+    border-color: rgba(25, 36, 54, 0.14);
+  }
 
   .char-count { font-size: 0.63rem; color: var(--text-muted); text-align: right; margin-top: 1px; }
   .char-count.warn { color: var(--ensino); }
@@ -225,11 +296,17 @@
     content: '📋 Nenhum item no banco — o administrador publica os itens pelo Gist';
     display: flex; align-items: center; justify-content: center;
     width: 100%; min-height: 70px;
-    color: rgba(255,255,255,0.13);
+    color: var(--empty-text);
     font-size: 0.82rem; font-style: italic;
     border: 2px dashed rgba(255,255,255,0.06);
     border-radius: 12px;
     text-align: center; padding: 0.8rem;
+  }
+
+  body[data-theme="light"] .staging-body:empty::after,
+  body[data-theme="light"] .tier-body:empty::after {
+    color: rgba(25, 36, 54, 0.3);
+    border-color: rgba(25, 36, 54, 0.14);
   }
 
   /* ══════════════════════════════════════
@@ -296,7 +373,7 @@
     content: 'Arraste itens aqui';
     display: flex; align-items: center; justify-content: center;
     width: 100%; height: 100%; min-height: 170px;
-    color: rgba(255,255,255,0.1);
+    color: var(--empty-text);
     font-size: 0.82rem; font-style: italic;
     border: 2px dashed rgba(255,255,255,0.06);
     border-radius: 12px;
@@ -307,8 +384,8 @@
      ══════════════════════════════════════ */
   .postit {
     position: relative;
-    width: 118px; min-height: 94px;
-    padding: 0.6rem 0.5rem 1.4rem;
+    width: 140px; min-height: 120px;
+    padding: 0.8rem 0.7rem 1.6rem;
     border-radius: 2px;
     cursor: grab;
     display: flex; align-items: center; justify-content: center;
@@ -334,8 +411,8 @@
     box-shadow: 0 1px 2px rgba(0,0,0,0.1);
   }
   .postit-text {
-    font-family: 'Caveat', cursive;
-    font-weight: 700; font-size: 1.05rem; line-height: 1.2;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700; font-size: 1.35rem; line-height: 1.35;
     color: #2d2d2d;
     word-break: break-word; hyphens: auto;
   }
@@ -674,9 +751,15 @@
 <header>
   <h1>Mapa de Atividades Acadêmicas</h1>
   <p>Arraste os itens do banco para as categorias e monte o mapa com a turma</p>
-  <button id="open-admin-modal-btn" class="btn-ghost" style="margin-top: 0.8rem;">
-    ⚙️ Administração <span class="admin-pill" id="admin-pill">leitura</span>
-  </button>
+  <div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:0.75rem; margin-top:0.8rem;">
+    <button id="theme-toggle-btn" class="btn-ghost" type="button" aria-label="Alternar tema">
+      <span id="theme-toggle-icon">🌙</span>
+      <span id="theme-toggle-text">Escuro</span>
+    </button>
+    <button id="open-admin-modal-btn" class="btn-ghost" type="button">
+      ⚙️ Administração <span class="admin-pill" id="admin-pill">leitura</span>
+    </button>
+  </div>
 </header>
 
 <div class="main-layout">
@@ -836,8 +919,39 @@
 (() => {
   const STORAGE_KEY = 'tierlist-academica-v2';
   const TOKEN_KEY = 'tierlist-admin-token';
+  const THEME_KEY = 'tierlist-theme';
   const CONFIG_URL = 'gist-config.json';
   const ALL_ZONES = ['staging-pool', 'tier-ensino', 'tier-pesquisa', 'tier-extensao'];
+
+  function getPreferredTheme() {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'light' || saved === 'dark') return saved;
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+
+  function updateThemeToggleUI() {
+    const theme = document.body.dataset.theme || 'dark';
+    const lightMode = theme === 'light';
+    const toggleText = $('theme-toggle-text');
+    const toggleIcon = $('theme-toggle-icon');
+    if (toggleText) toggleText.textContent = lightMode ? 'Claro' : 'Escuro';
+    if (toggleIcon) toggleIcon.textContent = lightMode ? '☀️' : '🌙';
+    const toggleBtn = $('theme-toggle-btn');
+    if (toggleBtn) toggleBtn.setAttribute('aria-label', lightMode ? 'Ativar tema escuro' : 'Ativar tema claro');
+  }
+
+  function applyTheme(theme) {
+    const resolvedTheme = theme === 'light' || theme === 'dark' ? theme : getPreferredTheme();
+    document.body.dataset.theme = resolvedTheme;
+    document.documentElement.style.colorScheme = resolvedTheme;
+    localStorage.setItem(THEME_KEY, resolvedTheme);
+    updateThemeToggleUI();
+  }
+
+  document.getElementById('theme-toggle-btn')?.addEventListener('click', () => {
+    const nextTheme = document.body.dataset.theme === 'light' ? 'dark' : 'light';
+    applyTheme(nextTheme);
+  });
 
   // Configuração pública (vem de gist-config.json, servido junto com a página)
   let remoteConfig = null;
@@ -1440,6 +1554,8 @@
   });
 
   // ═══ Inicialização ═══
+  applyTheme(getPreferredTheme());
+
   (async () => {
     setAdminMode(false);
 
